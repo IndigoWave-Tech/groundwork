@@ -31,7 +31,7 @@ Every pattern's `README.md` follows this structure. Copy it into a new pattern f
 - **What gets deployed:** [Resource-level summary.]
 - **Architecture:** [One paragraph, plus the diagram below.]
 
-![Architecture diagram](diagrams/architecture.png)
+[Architecture diagram: a Mermaid block here (GitHub renders it), or an image in diagrams/]
 
 ## 2. Prerequisites
 
