@@ -2,58 +2,75 @@
 
 **The cloud foundation most growing businesses skip, written down as code.**
 
-Groundwork is an open library of infrastructure-as-code patterns for small and mid-sized businesses: security, monitoring, backup, identity and cost guardrails that can be deployed, checked and rebuilt the same way every time. It is built and maintained by [IndigoWave Tech](https://indigowavetech.com).
+Groundwork is an open library of infrastructure-as-code patterns for small and mid-sized businesses: security, monitoring, backup, identity and cost guardrails that can be deployed, checked and rebuilt the same way every time. It is built and maintained by [IndigoWave Tech](https://indigowavetech.com), an Atlanta-based managed services provider.
 
 Azure patterns ship in both **Bicep** and **Terraform**. AWS and Google Cloud patterns ship in **Terraform**.
 
+**Contents**
+
+- [What this repository is](#what-this-repository-is)
+- [Who it is for](#who-it-is-for)
+- [The patterns](#the-patterns)
+- [How to use it](#how-to-use-it)
+- [What is inside every pattern](#what-is-inside-every-pattern)
+- [How changes are checked](#how-changes-are-checked)
+- [Design principles](#design-principles)
+- [Repository structure](#repository-structure)
+- [Contributing and feedback](#contributing-and-feedback)
+- [Want this run for you?](#want-this-run-for-you)
+
 ---
 
-## For business owners
+## What this repository is
 
 Think of your cloud environment like a building. Nobody admires the foundation, but when it is missing, the cracks show up everywhere: a former employee who can still log in, a backup nobody has tested, a bill that doubled and nobody noticed until the invoice arrived.
 
-Most small businesses build their cloud one urgent request at a time, so every setup ends up a little different and nobody can say exactly how it was put together. Groundwork takes the opposite approach. Each pattern is a written, repeatable blueprint, so your environment can be built correctly the first time, checked automatically, and rebuilt from scratch if it ever has to be.
+Most small businesses build their cloud one urgent request at a time. Someone creates a storage account for a project, someone else opens a firewall port to fix a problem on a Friday, and two years later nobody can say exactly how the environment was put together or whether it is safe. Every setup ends up a little different, and every fix depends on the one person who remembers.
 
-| Pattern | What it protects you from | Status |
-|---|---|---|
-| [01 Secure Landing Zone](patterns/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Planned |
-| [02 Overnight Watch](patterns/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Planned |
-| [03 Identity Baseline](patterns/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Planned |
-| [04 Backup and Recovery](patterns/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Planned |
-| [05 Cost Guardrails](patterns/05-cost-guardrails/) | Surprise bills, forgotten resources, and spending nobody can explain | Planned |
-| [06 Multi-Cloud Guardrails](patterns/06-multicloud-guardrails/) | AWS and Google Cloud accounts running without the same protections as the rest of your business | Planned |
+Groundwork takes the opposite approach. Each pattern is a written, repeatable blueprint for one part of the foundation. Because the blueprint is code, it can be:
 
-Every pattern's guide opens with a plain-language summary that answers three questions:
+- **Deployed the same way every time**, so a new environment matches the last one
+- **Checked automatically** against Microsoft, AWS and Google security guidance before anything is created
+- **Reviewed line by line**, so every decision is visible and can be questioned
+- **Rebuilt from scratch** after a mistake, an outage or a ransomware event
+- **Handed to a new engineer or provider** without a knowledge transfer meeting
 
-1. **What does this protect me from?**
-2. **What does it cost to run each month?**
-3. **Why was each decision made?**
+This is not a generic module collection. Microsoft, HashiCorp and others already publish excellent building blocks. Groundwork is the layer above those: opinionated, documented decisions about how a 50 to 500 person organization should assemble the blocks, and why.
+
+### What this repository is not
+
+- It is not a managed service. The code does not watch, patch or respond to anything on its own. That is what a provider does with it.
+- It is not a one-click setup for every business. Every pattern needs its parameters reviewed against your organization before it is deployed.
+- It is not a compliance certification. Patterns align with published frameworks and are checked against them, but alignment is not the same as an audit.
 
 ---
 
-## For IT leads and engineers
+## Who it is for
 
-Each pattern is opinionated on purpose. The defaults reflect what a 50 to 500 person organization on Microsoft 365 typically needs, and every non-obvious choice is written down with its tradeoff so you can disagree with it on purpose rather than by accident.
+**Business owners and executives.** You are not expected to read code. Each pattern's guide opens with a plain-language summary that answers three questions: what does this protect me from, what does it cost to run each month, and why was each decision made. Use it to understand what a well-built foundation includes, to ask your current IT provider pointed questions, or to evaluate what IndigoWave Tech would deploy for you.
 
-**What every pattern includes**
+**Internal IT leads and office managers who own technology.** You are often one person covering everything. These patterns give you a reviewed starting point instead of a blank page, and a documented standard you can hold your environment against. The deploy-from-zero guides assume nothing has been set up before.
 
-- Deployable code: Bicep and/or Terraform, with example parameter files only
-- An architecture diagram
-- A deploy-from-zero guide that assumes nothing has ever been set up before
-- A validation checklist to confirm the deployment did what it claims
-- A teardown procedure
-- A monthly cost estimate with its assumptions shown
-- A decision log explaining what was chosen, what was rejected, and why
+**Cloud engineers and consultants.** You will find the full reasoning behind every non-obvious choice in each pattern's design decisions table, with the rejected alternatives and the tradeoff. Disagree with a decision on purpose rather than by accident. Fork, adapt, and raise an issue if you think a default is wrong.
 
-**What every change is checked against**
+**Other managed service providers.** Use the patterns as a reference for your own baseline, or as a shared vocabulary when a client asks what "secure by default" means in practice.
 
-| Check | Tool | Purpose |
-|---|---|---|
-| Bicep build and lint | Bicep CLI | Code compiles and follows Bicep best practices |
-| Azure best practice | PSRule for Azure | Alignment with the Azure Well-Architected Framework |
-| Terraform format and validate | Terraform CLI | Consistent formatting and valid configuration |
-| Terraform lint | TFLint | Catches errors and deprecated syntax before deployment |
-| Security scan | Checkov | Flags insecure defaults and misconfigurations |
+**Technical evaluators and reviewers.** If you are assessing IndigoWave Tech's approach to cloud architecture, this repository is the working example: the decisions, the documentation standard, the automated checks, and the way environment-specific data is kept out of code.
+
+---
+
+## The patterns
+
+| Pattern | What it protects you from | Clouds | Status |
+|---|---|---|---|
+| [01 Secure Landing Zone](patterns/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | Planned |
+| [02 Overnight Watch](patterns/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Azure | Planned |
+| [03 Identity Baseline](patterns/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | Planned |
+| [04 Backup and Recovery](patterns/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Azure | Planned |
+| [05 Cost Guardrails](patterns/05-cost-guardrails/) | Surprise bills, forgotten resources, and spending nobody can explain | Azure | Planned |
+| [06 Multi-Cloud Guardrails](patterns/06-multicloud-guardrails/) | AWS and Google Cloud accounts running without the same protections as the rest of your business | AWS, Google Cloud | Planned |
+
+Patterns are numbered in the order most organizations should adopt them. The landing zone comes first because every other pattern deploys into it.
 
 **Status definitions**
 
@@ -63,13 +80,134 @@ Each pattern is opinionated on purpose. The defaults reflect what a 50 to 500 pe
 | In progress | Code exists and passes CI, documentation incomplete |
 | Ready | Passes CI, fully documented, and has been deployed and torn down in a sandbox subscription |
 
-**Design principles**
+---
+
+## How to use it
+
+### If you are a business owner
+
+1. Open the pattern that matches a worry you have (the table above is organized by what each one protects against).
+2. Read the "In plain terms" section at the top of its guide. It is written for you, not for engineers.
+3. Bring the three questions (what it protects, what it costs, why these decisions) to whoever manages your technology, or [book a consultation](#want-this-run-for-you) and we will walk through it together.
+
+### If you are deploying a pattern yourself
+
+Each pattern's guide has the exact steps for that pattern. The general flow is the same for all of them.
+
+**Step 1. Pick a pattern and read the whole guide first.** Especially the prerequisites and design decisions. Do not deploy anything you have not read.
+
+**Step 2. Clone the repository.**
+
+```bash
+git clone https://github.com/IndigoWave-Tech/groundwork.git
+cd groundwork/patterns/01-landing-zone
+```
+
+**Step 3. Install the tools listed in the pattern's prerequisites.** Typically one or more of:
+
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) with Bicep (`az bicep install`)
+- [Terraform](https://developer.hashicorp.com/terraform/install)
+- [AWS CLI](https://aws.amazon.com/cli/) or [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) for pattern 06
+
+**Step 4. Copy the example parameter file and fill in your values.** Example files are the only parameter files committed to this repository. Your copy should never be committed anywhere public.
+
+```bash
+# Bicep
+cp examples/main.example.bicepparam main.local.bicepparam
+
+# Terraform
+cp examples/terraform.example.tfvars terraform.tfvars
+```
+
+The `.gitignore` in this repository already excludes `*.local.bicepparam` and `*.tfvars` so a real file cannot be committed by accident.
+
+**Step 5. Deploy to a sandbox first.** Use a non-production subscription, account or project. Follow the deploy-from-zero steps in the guide.
+
+```bash
+# Bicep example (subscription scope)
+az deployment sub create \
+  --location eastus2 \
+  --template-file bicep/main.bicep \
+  --parameters main.local.bicepparam
+
+# Terraform example
+cd terraform
+terraform init
+terraform plan -var-file=../terraform.tfvars
+terraform apply -var-file=../terraform.tfvars
+```
+
+**Step 6. Run the validation checklist.** Every guide includes observable checks (a policy shows Compliant, an alert fires on a test condition, a restore succeeds). Do not consider the deployment done until each one passes.
+
+**Step 7. Tear it down, then deploy for real.** Follow the teardown steps so nothing is left behind in the sandbox. Then repeat steps 4 through 6 against the real environment, with a change window and a rollback plan.
+
+### If you are reviewing or adapting the code
+
+- Each pattern's design decisions table lists what was chosen, what was rejected, and why. Start there.
+- Run the same checks CI runs (see [How changes are checked](#how-changes-are-checked)) on your fork before relying on a change.
+- Open an issue if you believe a default is wrong for the stated audience. Disagreement with reasoning attached is the most useful contribution.
+
+---
+
+## What is inside every pattern
+
+Each pattern folder contains:
+
+- **Deployable code** in Bicep and/or Terraform, with example parameter files only
+- **An architecture diagram**
+- **A deploy-from-zero guide** that assumes nothing has ever been set up before
+- **A validation checklist** to confirm the deployment did what it claims
+- **A teardown procedure**
+- **A monthly cost estimate** with its assumptions and date shown
+- **A design decisions table** explaining what was chosen, what was rejected, and why
+
+The structure is fixed by [docs/PATTERN_TEMPLATE.md](docs/PATTERN_TEMPLATE.md). If someone cannot deploy a pattern using only its guide, the guide is treated as incomplete.
+
+---
+
+## How changes are checked
+
+Every pull request and every push to `main` runs the [Validate workflow](.github/workflows/validate.yml). Nothing is merged on a failing check.
+
+| Check | Tool | Purpose |
+|---|---|---|
+| Bicep build and lint | Bicep CLI | Code compiles and follows Bicep best practices |
+| Azure best practice | PSRule for Azure | Alignment with the Azure Well-Architected Framework |
+| Terraform format and validate | Terraform CLI | Consistent formatting and valid configuration |
+| Terraform lint | TFLint | Catches errors and deprecated syntax before deployment |
+| Security scan | Checkov | Flags insecure defaults and misconfigurations across all three clouds |
+
+To run the same checks locally before opening a pull request:
+
+```bash
+# Bicep
+az bicep build --file patterns/01-landing-zone/bicep/main.bicep
+az bicep lint  --file patterns/01-landing-zone/bicep/main.bicep
+
+# Terraform
+terraform -chdir=patterns/01-landing-zone/terraform fmt -check -recursive
+terraform -chdir=patterns/01-landing-zone/terraform init -backend=false
+terraform -chdir=patterns/01-landing-zone/terraform validate
+tflint --recursive --config "$(pwd)/.tflint.hcl"
+
+# Security scan
+pip install checkov
+checkov --directory patterns
+```
+
+Marking a pattern **Ready** additionally requires a real deployment and teardown in a sandbox subscription, with the validation checklist completed against it.
+
+---
+
+## Design principles
 
 - **Secure by default.** Insecure options require an explicit, documented override.
-- **No secrets in code.** Credentials come from Key Vault, managed identities, or OIDC federation.
-- **Nothing environment-specific is committed.** Only `*.example.tfvars` and `*.example.bicepparam` files live in this repository.
-- **Tagged for accountability.** Every resource carries owner, environment, and cost-center tags.
-- **Built to be handed over.** If someone cannot deploy a pattern using only its guide, the guide is incomplete.
+- **No secrets in code.** Credentials come from Key Vault, managed identities, or OIDC federation. Nothing is stored in a pipeline variable or a file.
+- **Nothing environment-specific is committed.** Only `*.example.tfvars` and `*.example.bicepparam` files live in this repository. No tenant IDs, subscription IDs, account IDs, or client names.
+- **Tagged for accountability.** Every resource carries owner, environment, and cost-center tags so every dollar can be traced.
+- **Right-sized for the audience.** Defaults reflect a 50 to 500 person organization, not an enterprise. Where an enterprise control was deliberately left out, the design decisions table says so.
+- **Built to be handed over.** The documentation standard exists so that a new engineer or a new provider can take over without a meeting.
+- **Honest about status.** A pattern is called Ready only after it has been deployed and torn down. Reference patterns are described as reference patterns, not as production history.
 
 ---
 
@@ -91,21 +229,43 @@ groundwork/
 │   └── 06-multicloud-guardrails/
 ├── docs/
 │   └── PATTERN_TEMPLATE.md    Standard structure every pattern guide follows
-└── .github/
-    └── workflows/validate.yml Automated checks on every change
+├── .github/
+│   ├── workflows/validate.yml Automated checks on every change
+│   └── pull_request_template.md
+├── bicepconfig.json           Bicep linter rules
+├── ps-rule.yaml               PSRule for Azure options
+├── .tflint.hcl                TFLint configuration
+├── LICENSE                    MIT
+└── README.md
 ```
 
 ---
 
-## Using these patterns
+## Contributing and feedback
 
-These are reference patterns built to production standards. They are a strong starting point, not a substitute for understanding your own environment. Review every pattern against your organization's requirements, and test in a non-production subscription or account before deploying anywhere that matters.
+Issues and pull requests are welcome. The most useful contributions are:
+
+- A default you believe is wrong for a 50 to 500 person organization, with your reasoning
+- A step in a deploy-from-zero guide that did not work as written
+- A cost estimate that no longer matches current pricing
+
+Every pull request goes through the template checklist: no environment-specific data, documentation updated, status accurate, and no claims that cannot be backed up.
+
+---
+
+## Using these patterns responsibly
+
+These are reference patterns built to production standards. They are a strong starting point, not a substitute for understanding your own environment. Review every pattern against your organization's requirements, and test in a non-production subscription or account before deploying anywhere that matters. Cloud charges from deploying these patterns are your responsibility.
+
+---
 
 ## Want this run for you?
 
-IndigoWave Tech deploys, monitors, and maintains foundations like these as a managed service, with vCIO guidance on what to build next.
+IndigoWave Tech deploys, monitors, and maintains foundations like these as a managed service, with vCIO guidance on what to build next. If you would rather have this done than do it, start with a conversation.
 
 **[Book a free consultation](https://calendly.com/indigowavetech/business-consultation?utm_source=github&utm_medium=readme&utm_campaign=groundwork)**
+
+---
 
 ## License
 
