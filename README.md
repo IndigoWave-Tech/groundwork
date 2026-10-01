@@ -65,7 +65,7 @@ This is not a generic module collection. Microsoft, HashiCorp and others already
 |---|---|---|---|
 | [01 Secure Landing Zone](patterns/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | Planned |
 | [02 Overnight Watch](patterns/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Azure | Planned |
-| [03 Identity Baseline](patterns/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | Planned |
+| [03 Identity Baseline](patterns/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | In progress |
 | [04 Backup and Recovery](patterns/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Azure | Planned |
 | [05 Cost Guardrails](patterns/05-cost-guardrails/) | Surprise bills, forgotten resources, and spending nobody can explain | Azure | Planned |
 | [06 Multi-Cloud Guardrails](patterns/06-multicloud-guardrails/) | AWS and Google Cloud accounts running without the same protections as the rest of your business | AWS, Google Cloud | Planned |
