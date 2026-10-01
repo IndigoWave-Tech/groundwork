@@ -1,0 +1,136 @@
+name: Validate
+
+# Runs on every pull request and every push to main.
+# Jobs only run when matching files exist, so documentation-only
+# changes pass quickly. The "All checks" job is the single status
+# to require in branch protection.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      bicep: ${{ steps.find.outputs.bicep }}
+      terraform: ${{ steps.find.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Find infrastructure code
+        id: find
+        run: |
+          if find patterns \( -name '*.bicep' -o -name '*.bicepparam' \) -print -quit | grep -q .; then
+            echo "bicep=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bicep=false" >> "$GITHUB_OUTPUT"
+          fi
+          if find patterns -name '*.tf' -print -quit | grep -q .; then
+            echo "terraform=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "terraform=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  bicep:
+    name: Bicep build, lint and PSRule
+    needs: detect
+    if: needs.detect.outputs.bicep == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Bicep
+        run: |
+          az bicep install
+          az bicep version
+
+      - name: Build and lint
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "::group::${file}"
+            az bicep build --file "${file}" --stdout > /dev/null
+            az bicep lint --file "${file}"
+            echo "::endgroup::"
+          done < <(find patterns -name '*.bicep' -print0)
+
+      - name: PSRule for Azure
+        uses: microsoft/ps-rule@v2.9.0
+        with:
+          modules: PSRule.Rules.Azure
+          inputPath: patterns/
+          option: ps-rule.yaml
+
+  terraform:
+    name: Terraform format, validate and TFLint
+    needs: detect
+    if: needs.detect.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+
+      - name: Format check
+        run: terraform fmt -check -recursive -diff patterns
+
+      - name: Validate each module
+        run: |
+          set -euo pipefail
+          find patterns -name '*.tf' -printf '%h\n' | sort -u | while read -r dir; do
+            echo "::group::${dir}"
+            terraform -chdir="${dir}" init -backend=false -input=false
+            terraform -chdir="${dir}" validate
+            echo "::endgroup::"
+          done
+
+      - uses: terraform-linters/setup-tflint@v6
+
+      - name: TFLint
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tflint --init --config "${GITHUB_WORKSPACE}/.tflint.hcl"
+          tflint --recursive --config "${GITHUB_WORKSPACE}/.tflint.hcl" --format compact
+
+  security:
+    name: Checkov security scan
+    needs: detect
+    if: needs.detect.outputs.bicep == 'true' || needs.detect.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: patterns
+          quiet: true
+
+  result:
+    name: All checks
+    needs: [detect, bicep, terraform, security]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate results
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more checks failed."
+            exit 1
+          fi
+          echo "All checks passed, or were skipped because no matching files exist."

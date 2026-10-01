@@ -1,0 +1,51 @@
+# ---------------------------------------------------------------
+# Groundwork .gitignore
+# Rule of thumb: nothing environment-specific ever gets committed.
+# No tenant IDs, subscription IDs, client names, state, or secrets.
+# ---------------------------------------------------------------
+
+# Terraform working files and state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform variable files: only *.example.tfvars may be committed
+*.tfvars
+*.tfvars.json
+!*.example.tfvars
+
+# Bicep local parameter files
+# Commit only *.example.bicepparam; keep real values in *.local.bicepparam
+*.local.bicepparam
+*.local.parameters.json
+
+# Secrets and local environment
+.env
+.env.*
+*.pem
+*.pfx
+*.key
+secrets/
+
+# PSRule, Checkov and other tool output
+reports/
+results/
+*.sarif
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp

@@ -1,0 +1,23 @@
+# PSRule for Azure options
+# https://azure.github.io/PSRule.Rules.Azure/
+#
+# Bicep modules are tested through their example parameter files
+# (*.bicepparam) or test harness files (*.tests.bicep), because a
+# module with required parameters cannot be expanded on its own.
+
+configuration:
+  AZURE_BICEP_FILE_EXPANSION: true
+  AZURE_BICEP_PARAMS_FILE_EXPANSION: true
+  AZURE_BICEP_FILE_EXPANSION_TIMEOUT: 30
+
+input:
+  pathIgnore:
+    - '**/*.bicep'
+    - '!**/*.tests.bicep'
+    - '**/*.md'
+    - '**/*.tf'
+    - '**/*.tfvars'
+
+output:
+  culture:
+    - en-US
