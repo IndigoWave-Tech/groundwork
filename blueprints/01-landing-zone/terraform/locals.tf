@@ -45,11 +45,13 @@ locals {
     audit_custom_rbac_roles               = "${local.builtin}/a451c1ef-c6ca-483d-87ed-f49761e3ffb5"
   }
 
-  # Key Vault names: globally unique, 3 to 24 characters.
-  key_vault_name = substr(
-    "kv-${var.org_code}-plat-${var.environment}-${substr(sha1(data.azurerm_subscription.current.subscription_id), 0, 8)}",
-    0, 24
-  )
+  # Key Vault names are globally unique, 3 to 24 characters, letters, digits and hyphens, no trailing hyphen.
+  # kv-<org>-<e>-<hash8>: org at most 8 characters, the environment as one letter, and the last 8 hex
+  # characters of the subscription ID. Longest possible name: 3 + 8 + 1 + 1 + 1 + 8 = 22 characters.
+  # Bicep derives the identical name (main.bicep), so both paths name the vault the same.
+  env_short         = { prod = "p", nonprod = "n", sandbox = "s" }
+  subscription_hash = substr(replace(data.azurerm_subscription.current.subscription_id, "-", ""), 24, 8)
+  key_vault_name    = "kv-${var.org_code}-${local.env_short[var.environment]}-${local.subscription_hash}"
 
   # First day of the current month, for the budget start date.
   budget_start_date = formatdate("YYYY-MM-01'T'00:00:00Z", timestamp())

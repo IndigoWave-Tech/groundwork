@@ -3,9 +3,12 @@
 
 targetScope = 'subscription'
 
+@description('Resource ID of the Log Analytics workspace that receives the activity log.')
 param workspaceId string
 
-// 2021-05-01-preview is the current diagnostic settings API; the only GA version (2016-09-01) lacks categoryGroup support.
+// Subscription-scope diagnostic settings need 2017-05-01-preview or later, and 2021-05-01-preview is the
+// newest version. The linter flags it as older than two years and offers only 2016-09-01, which cannot
+// target a subscription; nothing newer exists to move to.
 #disable-next-line use-recent-api-versions
 resource activityLog 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'send-activity-log-to-workspace'

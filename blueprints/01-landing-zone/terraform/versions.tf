@@ -3,8 +3,10 @@ terraform {
 
   required_providers {
     azurerm = {
+      # 4.35 or later: the provider can take the subscription from the Azure CLI
+      # login. Export ARM_SUBSCRIPTION_ID to make the choice explicit (see README).
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 4.35"
     }
   }
 
@@ -25,7 +27,8 @@ provider "azurerm" {
   features {
     key_vault {
       # Purge protection is on, so a destroy soft-deletes the vault rather
-      # than removing it. Keep these false so destroy does not try to purge.
+      # than removing it. Never purge on destroy; recover a soft-deleted vault
+      # on redeploy instead of failing on the name.
       purge_soft_delete_on_destroy    = false
       recover_soft_deleted_key_vaults = true
     }

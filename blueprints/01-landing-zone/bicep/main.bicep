@@ -21,7 +21,7 @@ targetScope = 'subscription'
 // Parameters
 // ----------------------------------------------------------------------------
 
-@description('Short, lowercase organization code used in resource names, for example "contoso". 2 to 8 characters.')
+@description('Short organization code used in resource names, for example "contoso". 2 to 8 letters or digits; normalized to lowercase.')
 @minLength(2)
 @maxLength(8)
 param orgCode string
@@ -34,14 +34,11 @@ param environment string
 param location string
 
 @description('Regions where resources may be created. Policy denies everything else. Include the primary location.')
+@minLength(1)
 param allowedLocations array
 
-@description('Tags applied to every resource group. Policy requires these three keys on all resource groups.')
-param tags object = {
-  owner: ''
-  environment: ''
-  costCenter: ''
-}
+@description('Tags applied to every resource group: owner, environment and costCenter. Policy requires all three on every resource group, so there is no default.')
+param tags object
 
 @description('Email address that receives Defender for Cloud alerts and budget alerts.')
 param securityContactEmail string
@@ -67,6 +64,10 @@ param keyVaultAllowedIpRanges array = []
 @maxValue(730)
 param logRetentionDays int = 90
 
+@description('Daily ingestion cap for Log Analytics in GB. Protects the bill if something logs in a loop. Raise it deliberately if you outgrow it.')
+@minValue(1)
+param logDailyQuotaGb int = 5
+
 @description('Resource types that may never be created in this subscription. Defaults block classic (pre-ARM) resources.')
 param deniedResourceTypes array = [
   'Microsoft.ClassicCompute/virtualMachines'
@@ -74,9 +75,13 @@ param deniedResourceTypes array = [
   'Microsoft.ClassicStorage/storageAccounts'
 ]
 
+@description('Enable the paid Defender for Servers Plan 1 and Defender for Key Vault plans. Off by default: the landing zone has no workloads to protect yet, and Defender security alerts (used by Blueprint 02) are generated only by paid plans. Read the cost breakdown before turning this on.')
+param enableDefenderPlans bool = false
+
 // ----------------------------------------------------------------------------
 // Naming
-// Convention: <type>-<org>-<workload>-<env>-<region short>
+// Convention: <type>-<workload>-<suffix>, where suffix = <org>-<env>-<region short>.
+// Example: rg-platform-logging-contoso-prod-eus2. See docs/CONVENTIONS.md.
 // ----------------------------------------------------------------------------
 
 var regionShort = {
@@ -94,7 +99,18 @@ var regionShort = {
   australiaeast: 'aue'
 }
 var loc = regionShort[?location] ?? substring(location, 0, 4)
-var suffix = '${orgCode}-${environment}-${loc}'
+// Bicep cannot validate a regex, so the org code is normalized to lowercase here.
+// The Terraform path rejects anything that is not 2 to 8 lowercase letters or digits.
+var org = toLower(orgCode)
+var suffix = '${org}-${environment}-${loc}'
+
+// Key Vault names are globally unique, 3 to 24 characters, letters, digits and hyphens, no trailing hyphen.
+// kv-<org>-<e>-<hash8>: org at most 8 characters, the environment as one letter, and the last 8 hex
+// characters of the subscription ID. Longest possible name: 3 + 8 + 1 + 1 + 1 + 8 = 22 characters.
+// Terraform derives the identical name (locals.tf), so both paths name the vault the same.
+var envShort = { prod: 'p', nonprod: 'n', sandbox: 's' }
+var subscriptionHash = substring(replace(subscription().subscriptionId, '-', ''), 24, 8)
+var platformKeyVaultName = 'kv-${org}-${envShort[environment]}-${subscriptionHash}'
 
 var rgNames = {
   logging: 'rg-platform-logging-${suffix}'
@@ -139,6 +155,7 @@ module logging 'modules/logging.bicep' = {
     workspaceName: 'log-platform-${suffix}'
     location: location
     retentionDays: logRetentionDays
+    dailyQuotaGb: logDailyQuotaGb
     tags: deploymentTags
   }
 }
@@ -190,8 +207,7 @@ module keyVault 'modules/keyvault.bicep' = {
   name: 'lz-keyvault'
   scope: rgSecurity
   params: {
-    // Key Vault names are globally unique, 3 to 24 chars, letters, digits and hyphens.
-    keyVaultName: take('kv-${orgCode}-plat-${environment}-${uniqueString(subscription().subscriptionId)}', 24)
+    keyVaultName: platformKeyVaultName
     location: location
     allowedIpRanges: keyVaultAllowedIpRanges
     workspaceId: logging.outputs.workspaceId
@@ -208,6 +224,7 @@ module security 'modules/security.bicep' = {
   params: {
     securityContactEmail: securityContactEmail
     securityContactPhone: securityContactPhone
+    enableDefenderPlans: enableDefenderPlans
   }
 }
 
@@ -228,9 +245,20 @@ module budget 'modules/budget.bicep' = {
 // Outputs
 // ----------------------------------------------------------------------------
 
+@description('Names of the three platform resource groups, keyed logging, network and security.')
 output resourceGroupNames object = rgNames
+
+@description('Resource ID of the central Log Analytics workspace. Blueprints 02, 03, 04 and 05 take this as workspaceResourceId.')
 output logAnalyticsWorkspaceId string = logging.outputs.workspaceId
+
+@description('Resource ID of the hub virtual network.')
 output hubVnetId string = network.outputs.vnetId
+
+@description('Resource ID of the shared services subnet.')
 output sharedSubnetId string = network.outputs.sharedSubnetId
+
+@description('Name of the platform Key Vault.')
 output keyVaultName string = keyVault.outputs.keyVaultName
+
+@description('URI of the platform Key Vault.')
 output keyVaultUri string = keyVault.outputs.keyVaultUri

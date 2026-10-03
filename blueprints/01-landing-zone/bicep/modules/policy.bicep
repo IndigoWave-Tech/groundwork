@@ -7,9 +7,16 @@
 
 targetScope = 'subscription'
 
+@description('Region for the managed identities of the Modify assignments.')
 param location string
+
+@description('Regions where resources and resource groups may be created.')
 param allowedLocations array
+
+@description('Tag names required on resource groups and inherited to resources.')
 param requiredTagNames array
+
+@description('Resource types that may never be created.')
 param deniedResourceTypes array
 
 var builtIn = '/providers/Microsoft.Authorization/policyDefinitions'
@@ -174,12 +181,16 @@ resource keyVaultRbacAssignment 'Microsoft.Authorization/policyAssignments@2026-
   }
 }
 
+// This built-in has a fixed Deny effect and no effect parameter. It is assigned
+// with enforcement off so it reports public-IP NICs in the compliance view
+// without blocking them. Set enforcementMode to Default to turn it into a Deny.
 resource nicNoPublicIpAssignment 'Microsoft.Authorization/policyAssignments@2026-07-01' = {
   name: 'lz-nic-no-public-ip'
   properties: {
     displayName: 'Landing zone: audit network interfaces with public IPs'
+    description: 'Built-in Deny-only definition assigned in DoNotEnforce mode: it reports, it does not block. See README design decisions.'
     policyDefinitionId: definitions.nicNoPublicIp
-    enforcementMode: 'Default'
+    enforcementMode: 'DoNotEnforce'
   }
 }
 

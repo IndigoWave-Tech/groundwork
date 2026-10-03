@@ -3,9 +3,19 @@
 
 targetScope = 'resourceGroup'
 
+@description('Workspace name, log-platform-<suffix>.')
 param workspaceName string
+
+@description('Azure region.')
 param location string
+
+@description('Interactive retention in days.')
 param retentionDays int
+
+@description('Daily ingestion cap in GB.')
+param dailyQuotaGb int
+
+@description('Tags for the workspace.')
 param tags object
 
 resource workspace 'Microsoft.OperationalInsights/workspaces@2026-03-01' = {
@@ -29,7 +39,7 @@ resource workspace 'Microsoft.OperationalInsights/workspaces@2026-03-01' = {
     workspaceCapping: {
       // Daily ingestion cap in GB. Protects the bill if something starts
       // logging in a loop. Raise it deliberately if you outgrow it.
-      dailyQuotaGb: 5
+      dailyQuotaGb: dailyQuotaGb
     }
   }
 }

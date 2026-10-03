@@ -31,8 +31,8 @@ resource "azurerm_log_analytics_workspace" "platform" {
   daily_quota_gb      = var.log_daily_quota_gb
   tags                = local.tags
 
-  # Reading logs requires RBAC on the workspace, not just the resource.
-  # Note: azurerm exposes this inverted relative to the ARM property.
+  # Reading logs requires RBAC on the workspace, not just on the resource that
+  # wrote them. false maps directly to enableLogAccessUsingOnlyResourcePermissions: false.
   allow_resource_only_permissions = false
 }
 
@@ -130,8 +130,8 @@ resource "azurerm_monitor_diagnostic_setting" "vnet" {
 # ----------------------------------------------------------------------------
 
 resource "azurerm_key_vault" "platform" {
-  #checkov:skip=CKV_AZURE_189: Public endpoint stays reachable behind a default-deny firewall; private endpoints need a connected network most small organizations do not have yet, see README design decisions
-  #checkov:skip=CKV2_AZURE_32: Private endpoint deferred for the same reason; add when a hub-connected network or VPN exists
+  #checkov:skip=CKV_AZURE_189: Public endpoint behind a default-deny firewall by design; see README design decisions, Key Vault network access
+  #checkov:skip=CKV2_AZURE_32: No private endpoint until a connected network exists; see README design decisions, Key Vault network access
   name                = local.key_vault_name
   location            = var.location
   resource_group_name = azurerm_resource_group.platform["security"].name
@@ -174,12 +174,39 @@ resource "azurerm_monitor_diagnostic_setting" "key_vault" {
 # 6. Defender for Cloud posture and security contact
 # ----------------------------------------------------------------------------
 
+# Checkov evaluates each pricing resource statically and cannot follow the
+# enable_defender_plans switch, so every skip below names the design decision.
 resource "azurerm_security_center_subscription_pricing" "cspm" {
-  #checkov:skip=CKV_AZURE_19: Foundational CSPM is free; paid Defender plans are a per-workload decision, see README design decisions
+  #checkov:skip=CKV_AZURE_19: Foundational CSPM is the free tier by design; see README design decisions, Defender for Cloud
+  #checkov:skip=CKV_AZURE_84: Defender for Storage belongs to the blueprint that deploys storage; see README design decisions, Defender for Cloud
+  #checkov:skip=CKV_AZURE_87: Defender for Key Vault is the key_vaults resource below, behind enable_defender_plans; see README design decisions, Defender for Cloud
   tier          = "Free"
   resource_type = "CloudPosture"
 }
 
+# Defender for Servers Plan 1 and Defender for Key Vault, paid plans that are
+# off by default. Defender security alerts (Blueprint 02's security alert rule)
+# are generated only when a paid plan is on. See README design decisions.
+resource "azurerm_security_center_subscription_pricing" "servers" {
+  #checkov:skip=CKV_AZURE_19: Standard only when enable_defender_plans is true; see README design decisions, Defender for Cloud
+  #checkov:skip=CKV_AZURE_55: Standard only when enable_defender_plans is true; see README design decisions, Defender for Cloud
+  #checkov:skip=CKV_AZURE_84: This resource is the Servers plan; Defender for Storage belongs to the blueprint that deploys storage
+  #checkov:skip=CKV_AZURE_87: This resource is the Servers plan; Defender for Key Vault is the key_vaults resource below
+  tier          = var.enable_defender_plans ? "Standard" : "Free"
+  resource_type = "VirtualMachines"
+  subplan       = var.enable_defender_plans ? "P1" : null
+}
+
+resource "azurerm_security_center_subscription_pricing" "key_vaults" {
+  #checkov:skip=CKV_AZURE_19: Standard only when enable_defender_plans is true; see README design decisions, Defender for Cloud
+  #checkov:skip=CKV_AZURE_84: This resource is the Key Vault plan; Defender for Storage belongs to the blueprint that deploys storage
+  #checkov:skip=CKV_AZURE_87: Standard only when enable_defender_plans is true; see README design decisions, Defender for Cloud
+  tier          = var.enable_defender_plans ? "Standard" : "Free"
+  resource_type = "KeyVaults"
+}
+
+# The provider exposes on/off switches only; the Bicep path sets a Medium
+# minimal severity and Owner notification. See README design decisions.
 resource "azurerm_security_center_contact" "default" {
   name  = "default"
   email = var.security_contact_email

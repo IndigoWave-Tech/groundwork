@@ -6,15 +6,24 @@
 
 targetScope = 'resourceGroup'
 
+@description('Vault name, computed in main.bicep so Bicep and Terraform agree.')
 param keyVaultName string
+
+@description('Azure region.')
 param location string
+
+@description('Public IP ranges (CIDR) allowed through the firewall. Empty allows none beyond trusted Azure services.')
 param allowedIpRanges array
+
+@description('Resource ID of the Log Analytics workspace for audit events.')
 param workspaceId string
+
+@description('Tags for the vault.')
 param tags object
 
 resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
-  // checkov:skip=CKV_AZURE_189: Public endpoint stays reachable behind a default-deny firewall; private endpoints need a connected network most small organizations do not have yet, see README design decisions
-  // checkov:skip=CKV2_AZURE_32: Private endpoint deferred for the same reason; add when a hub-connected network or VPN exists
+  // checkov:skip=CKV_AZURE_189: Public endpoint behind a default-deny firewall by design; see README design decisions, Key Vault network access
+  // checkov:skip=CKV2_AZURE_32: No private endpoint until a connected network exists; see README design decisions, Key Vault network access
   name: keyVaultName
   location: location
   tags: tags
@@ -45,7 +54,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
   }
 }
 
-// 2021-05-01-preview is the current diagnostic settings API; the only GA version (2016-09-01) lacks categoryGroup support.
+// 2021-05-01-preview is the newest API version for diagnostic settings. The linter flags it as older than
+// two years and offers only 2016-09-01, which predates the current schema; nothing newer exists to move to.
 #disable-next-line use-recent-api-versions
 resource keyVaultDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   name: 'send-to-workspace'

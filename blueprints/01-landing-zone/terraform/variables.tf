@@ -82,6 +82,11 @@ variable "shared_subnet_prefix" {
   description = "Address prefix for the shared services subnet. Must sit inside hub_address_space."
   type        = string
   default     = "10.0.1.0/24"
+
+  validation {
+    condition     = can(cidrhost(var.shared_subnet_prefix, 0))
+    error_message = "shared_subnet_prefix must be a valid CIDR block."
+  }
 }
 
 variable "key_vault_allowed_ip_ranges" {
@@ -102,9 +107,20 @@ variable "log_retention_days" {
 }
 
 variable "log_daily_quota_gb" {
-  description = "Daily ingestion cap for Log Analytics in GB. Protects the bill if something logs in a loop."
+  description = "Daily ingestion cap for Log Analytics in GB. Protects the bill if something logs in a loop. Raise it deliberately if you outgrow it."
   type        = number
   default     = 5
+
+  validation {
+    condition     = var.log_daily_quota_gb >= 1
+    error_message = "log_daily_quota_gb must be at least 1."
+  }
+}
+
+variable "enable_defender_plans" {
+  description = "Enable the paid Defender for Servers Plan 1 and Defender for Key Vault plans. Off by default: the landing zone has no workloads to protect yet, and Defender security alerts (used by Blueprint 02) are generated only by paid plans. Read the cost breakdown before turning this on."
+  type        = bool
+  default     = false
 }
 
 variable "denied_resource_types" {

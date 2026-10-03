@@ -126,11 +126,16 @@ resource "azurerm_subscription_policy_assignment" "key_vault_rbac" {
   parameters = jsonencode({ effect = { value = "Audit" } })
 }
 
+# This built-in has a fixed Deny effect and no effect parameter. It is assigned
+# with enforcement off so it reports public-IP NICs in the compliance view
+# without blocking them. Set enforce to true to turn it into a Deny.
 resource "azurerm_subscription_policy_assignment" "nic_no_public_ip" {
   name                 = "lz-nic-no-public-ip"
   display_name         = "Landing zone: audit network interfaces with public IPs"
+  description          = "Built-in Deny-only definition assigned with enforcement off: it reports, it does not block. See README design decisions."
   subscription_id      = data.azurerm_subscription.current.id
   policy_definition_id = local.policy_definitions.nic_no_public_ip
+  enforce              = false
 }
 
 resource "azurerm_subscription_policy_assignment" "subnet_requires_nsg" {

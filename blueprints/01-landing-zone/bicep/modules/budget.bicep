@@ -3,12 +3,18 @@
 
 targetScope = 'subscription'
 
+@description('Budget name, budget-subscription-<suffix>.')
 param budgetName string
+
+@description('Monthly amount in the billing currency.')
 param amount int
+
+@description('Email addresses that receive the threshold alerts.')
 param contactEmails array
 
 // Budgets need a start date on the first of a month. Use the current month
 // at deployment time so the template stays environment-free.
+@description('First day of the month the budget starts. Defaults to the current month at deployment time.')
 param startDate string = '${utcNow('yyyy-MM')}-01'
 
 resource budget 'Microsoft.Consumption/budgets@2026-06-01' = {
