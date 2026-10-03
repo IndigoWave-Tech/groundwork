@@ -12,7 +12,7 @@ terraform {
     }
   }
 
-  # State must never live in this repository. See Pattern 01 for the
+  # State must never live in this repository. See Blueprint 01 for the
   # backend block to copy, with key "groundwork/03-identity-baseline.tfstate".
   # This state contains tenant and group object IDs; protect it accordingly.
 }
@@ -23,7 +23,7 @@ terraform {
 # Administrator and Groups Administrator roles together satisfy this for a user.
 provider "azuread" {}
 
-# Only used to send Entra sign-in and audit logs to the Pattern 01 workspace.
+# Only used to send Entra sign-in and audit logs to the Blueprint 01 workspace.
 provider "azurerm" {
   features {}
 }

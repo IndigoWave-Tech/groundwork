@@ -1,6 +1,6 @@
 locals {
   # Group and named-location display names carry the org code so they sort
-  # together and are obviously managed by this pattern.
+  # together and are obviously managed by this blueprint.
   prefix = "${upper(var.org_code)} Groundwork"
 
   # The 14 roles Microsoft's own "Require MFA for administrators" template

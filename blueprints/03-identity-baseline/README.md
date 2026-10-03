@@ -2,12 +2,12 @@
 
 > Status: In progress (code passes CI; awaiting first sandbox deployment)
 > Clouds: Microsoft Entra ID (Terraform). No Bicep: see [bicep/README.md](bicep/README.md) for why.
-> Requires: Microsoft Entra ID P1 (included in Microsoft 365 Business Premium, E3, E5). Pattern 01 optional, for log export.
+> Requires: Microsoft Entra ID P1 (included in Microsoft 365 Business Premium, E3, E5). Blueprint 01 optional, for log export.
 > Last validated: not yet deployed
 
 ## In plain terms
 
-**What this protects you from:** stolen passwords, risky sign-ins, and accounts that outlive the people who used them. Most business email compromise starts with one password, phished or guessed, used from somewhere your staff have never been. This pattern makes a password alone insufficient, closes the old protocols that attackers use to sidestep MFA, and keeps a locked-and-documented emergency key so you can never be locked out of your own tenant.
+**What this protects you from:** stolen passwords, risky sign-ins, and accounts that outlive the people who used them. Most business email compromise starts with one password, phished or guessed, used from somewhere your staff have never been. This blueprint makes a password alone insufficient, closes the old protocols that attackers use to sidestep MFA, and keeps a locked-and-documented emergency key so you can never be locked out of your own tenant.
 
 **What it costs to run:** **$0** beyond licensing you already have. Conditional Access is part of Entra ID P1, which Microsoft 365 Business Premium includes. The optional risk-based policies need P2.
 
@@ -25,7 +25,7 @@
 
 ## 1. Overview
 
-**Business objective.** Make identity the perimeter. For a 50 to 500 person organization on Microsoft 365, the firewall is mostly irrelevant; the attack surface is the login page. This pattern applies Microsoft's own recommended baseline policies as code, with a safe rollout procedure and the exclusions that stop a mistake from becoming an outage.
+**Business objective.** Make identity the perimeter. For a 50 to 500 person organization on Microsoft 365, the firewall is mostly irrelevant; the attack surface is the login page. This blueprint applies Microsoft's own recommended baseline policies as code, with a safe rollout procedure and the exclusions that stop a mistake from becoming an outage.
 
 **What gets deployed.** Into a Microsoft Entra ID tenant:
 
@@ -36,7 +36,7 @@
 | Conditional Access, always | 7 policies: CA001, CA101, CA102, CA103, CA201, CA202, CA203 |
 | Conditional Access, P2 only | 2 policies: CA301, CA302 (when `enable_risk_policies = true`) |
 | Conditional Access, optional | 1 policy: CA401 (when `allowed_countries` is set) |
-| Log export | Entra sign-in and audit logs to the Pattern 01 workspace (optional) |
+| Log export | Entra sign-in and audit logs to the Blueprint 01 workspace (optional) |
 
 **Architecture.** Policies target the whole tenant and exclude groups, never individual users, so changing who is exempt never means changing a policy. Two exclusion groups exist because two different questions are being asked: "who must bypass everything in an emergency" (break-glass, excluded from all policies) and "who genuinely cannot perform MFA" (service accounts, excluded from MFA requirements only, still blocked from legacy authentication). Every policy's state is one variable, so the whole baseline moves from report-only to enforced in a single reviewed change.
 
@@ -69,7 +69,7 @@ flowchart TB
     mfaex -.->|excluded| ca3
     office -.->|skips| ca1
     countries -.->|allows| ca4
-    tenant -->|SignInLogs, AuditLogs| law["Log Analytics workspace<br/>(Pattern 01)"]
+    tenant -->|SignInLogs, AuditLogs| law["Log Analytics workspace<br/>(Blueprint 01)"]
 ```
 
 ### The policy catalog
@@ -95,7 +95,7 @@ flowchart TB
 | Security defaults | Must be **off**. Conditional Access and security defaults cannot coexist. Entra admin center > Identity > Overview > Properties > Manage security defaults. |
 | Two break-glass accounts | Create them **before** deploying. Cloud-only (`*.onmicrosoft.com`), Global Administrator, no MFA registered, 64+ character passwords stored offline in two separate physical locations (a safe, not a password manager). Record each account's **object ID**. See the [Microsoft guidance](https://learn.microsoft.com/entra/identity/role-based-access-control/security-emergency-access). |
 | Deploying identity | A user holding **Conditional Access Administrator** and **Groups Administrator**. Global Administrator also works but is more than needed. If using a service principal, Graph permissions `Policy.ReadWrite.ConditionalAccess`, `Policy.Read.All`, `Group.ReadWrite.All`, `Application.Read.All`. |
-| For log export | Contributor on the Pattern 01 workspace resource group, and the deploying identity must be Global Administrator or Security Administrator (Entra diagnostic settings are tenant-level). |
+| For log export | Contributor on the Blueprint 01 workspace resource group, and the deploying identity must be Global Administrator or Security Administrator (Entra diagnostic settings are tenant-level). |
 | Azure CLI | 2.60 or later, signed in to the correct tenant: `az login --tenant <tenant-id> --allow-no-subscriptions`. |
 | Terraform | 1.9 or later. Providers: `hashicorp/azuread` 3.x, `hashicorp/azurerm` 4.x. |
 | Information to have ready | Break-glass object IDs; any accounts that truly cannot do MFA and the reason for each; office egress IPs; countries staff sign in from; whether the tenant has P2. |
@@ -110,7 +110,7 @@ flowchart TB
 03-identity-baseline/
 ├── README.md                          This guide
 ├── bicep/
-│   └── README.md                      Why this pattern has no Bicep
+│   └── README.md                      Why this blueprint has no Bicep
 ├── terraform/
 │   ├── versions.tf                    Provider pins and required permissions
 │   ├── variables.tf                   Inputs with validation (two break-glass IDs enforced)
@@ -123,7 +123,7 @@ flowchart TB
 └── diagrams/
 ```
 
-**Secret injection points.** None. Object IDs and IP ranges are not secrets but are tenant-specific; keep `terraform.tfvars` out of version control. Terraform state contains the same IDs; store it in the protected backend from Pattern 01.
+**Secret injection points.** None. Object IDs and IP ranges are not secrets but are tenant-specific; keep `terraform.tfvars` out of version control. Terraform state contains the same IDs; store it in the protected backend from Blueprint 01.
 
 ## 4. Deploy from zero
 
@@ -149,12 +149,12 @@ az ad user show --id breakglass1@<tenant>.onmicrosoft.com --query id -o tsv
 az ad user show --id breakglass2@<tenant>.onmicrosoft.com --query id -o tsv
 ```
 
-Write the passwords on paper. Seal them. Store them in two separate locations with two different people aware of each. Test one of them signing in, then do not use them again except in an emergency. Pattern 02's Overnight Watch should alert on any break-glass sign-in; add that rule when Pattern 03 reaches Ready.
+Write the passwords on paper. Seal them. Store them in two separate locations with two different people aware of each. Test one of them signing in, then do not use them again except in an emergency. Blueprint 02's Overnight Watch should alert on any break-glass sign-in; add that rule when Blueprint 03 reaches Ready.
 
 ### Step 1: Deploy in report-only mode
 
 ```bash
-cd groundwork/patterns/03-identity-baseline
+cd groundwork/blueprints/03-identity-baseline
 cp examples/terraform.example.tfvars terraform/terraform.tfvars
 # Edit terraform/terraform.tfvars. Confirm policy_state is enabledForReportingButNotEnforced.
 
@@ -204,7 +204,7 @@ To stage, temporarily set `state` on individual policies in `conditional-access.
 - [ ] **Report-only results are flowing.** After 24 hours, the KQL in Step 2 returns rows (or the Insights workbook shows data). If zero rows after 48 hours of normal activity, check the diagnostic setting and that sign-ins are occurring.
 - [ ] **Legacy auth has no legitimate users** (before enabling CA001). `SigninLogs | where TimeGenerated > ago(7d) | where ClientAppUsed !in ("Browser", "Mobile Apps and Desktop clients") | summarize count() by UserPrincipalName, ClientAppUsed, AppDisplayName`. Every row must be explainable and fixable.
 - [ ] **After enablement: MFA is actually required.** Sign in as a normal test user from a new device. An MFA prompt appears. Sign in as an admin test user to portal.azure.com. MFA prompt appears, and the session expires after the configured hours.
-- [ ] **After enablement: nothing broke overnight.** Check Pattern 02's Overnight Summary the next morning for a spike in failed sign-ins. Some increase is normal; a cliff means a group was missed.
+- [ ] **After enablement: nothing broke overnight.** Check Blueprint 02's Overnight Summary the next morning for a spike in failed sign-ins. Some increase is normal; a cliff means a group was missed.
 
 ## 6. Teardown
 
@@ -232,27 +232,27 @@ This removes the policies, named locations, exclusion groups, and the diagnostic
 | Session limits only for admins | CA203 targets 14 roles | Sign-in frequency for all users | Hourly or daily re-authentication for every employee is friction that produces MFA fatigue and workarounds. Admin sessions are where the damage is. |
 | Country block optional | Only when `allowed_countries` is set | Always on; or never | Right for most domestic SMBs, wrong for any with travelling staff and no exception process. Make it a decision, not a default. |
 | Risk policies gated on P2 | `enable_risk_policies`, default false | Always deploy | On a P1 tenant they create silently and never fire, which is worse than absent because it looks like coverage. |
-| No device compliance policies | Not included | Require compliant or hybrid-joined device | Needs Intune enrolment across the fleet first. That is a device management pattern, not an identity baseline. |
+| No device compliance policies | Not included | Require compliant or hybrid-joined device | Needs Intune enrolment across the fleet first. That is a device management blueprint, not an identity baseline. |
 | No phishing-resistant MFA requirement | Standard MFA control | Authentication strength: phishing-resistant for admins | Right target, wrong day one. Requires every admin to have a FIDO2 key or Windows Hello enrolled first, or they are locked out. Document as the next step after Ready. |
-| Log export in this pattern | Entra diagnostic setting to Pattern 01 workspace | Leave to Pattern 02 | The report-only review in Step 2 needs the logs, so the pattern that needs them ships them. |
+| Log export in this blueprint | Entra diagnostic setting to Blueprint 01 workspace | Leave to Blueprint 02 | The report-only review in Step 2 needs the logs, so the blueprint that needs them ships them. |
 
 ## 8. Security model
 
 - **Identity and access.** The deploying identity needs Conditional Access Administrator and Groups Administrator. Nothing else is granted. The two exclusion groups are owned by the deploying identity so ownership is auditable.
 - **Lockout protection.** Break-glass accounts are excluded from every policy by group membership, validated as at least two, and tested by the checklist. Keep a break-glass session open during any enablement change.
-- **Exclusion group drift.** Anyone with Groups Administrator can add a member to the MFA-exempt group and bypass MFA. Review both groups quarterly; alert on membership changes once Pattern 02 covers Entra audit logs (the audit log is exported by this pattern, so the query is possible today).
+- **Exclusion group drift.** Anyone with Groups Administrator can add a member to the MFA-exempt group and bypass MFA. Review both groups quarterly; alert on membership changes once Blueprint 02 covers Entra audit logs (the audit log is exported by this blueprint, so the query is possible today).
 - **State.** Terraform state contains group and policy object IDs. Not secrets, but tenant-identifying. Use the protected backend.
-- **Logging.** Sign-in, non-interactive sign-in, service principal, managed identity, audit, and risk logs flow to the Pattern 01 workspace for 90 days.
+- **Logging.** Sign-in, non-interactive sign-in, service principal, managed identity, audit, and risk logs flow to the Blueprint 01 workspace for 90 days.
 
 ## 9. Cost breakdown
 
 | Resource | Estimated monthly cost | Assumption |
 |---|---|---|
 | Conditional Access policies, named locations, groups | $0 | Included in Entra ID P1. |
-| Entra ID P1 licensing | $0 incremental | Already held via Microsoft 365 Business Premium, E3 or E5. Standalone P1 is a licensing decision outside this pattern. |
-| Entra ID P2 (optional, for CA301 and CA302) | $0 incremental if held | If not held, this pattern does not require it; leave `enable_risk_policies = false`. |
-| Entra log export to Log Analytics | roughly $0 to $15 | Sign-in logs are billable ingestion at $2.30/GB (see Pattern 01). A 100-user organization typically generates well under 200 MB/day. Covered by the Pattern 01 daily cap. |
-| **Total** | **$0 to $15** | The only variable cost is log volume, already budgeted in Pattern 01. |
+| Entra ID P1 licensing | $0 incremental | Already held via Microsoft 365 Business Premium, E3 or E5. Standalone P1 is a licensing decision outside this blueprint. |
+| Entra ID P2 (optional, for CA301 and CA302) | $0 incremental if held | If not held, this blueprint does not require it; leave `enable_risk_policies = false`. |
+| Entra log export to Log Analytics | roughly $0 to $15 | Sign-in logs are billable ingestion at $2.30/GB (see Blueprint 01). A 100-user organization typically generates well under 200 MB/day. Covered by the Blueprint 01 daily cap. |
+| **Total** | **$0 to $15** | The only variable cost is log volume, already budgeted in Blueprint 01. |
 
 Estimate method: Microsoft Learn licensing documentation and Azure Monitor pricing, checked 2026-10-01.
 
@@ -265,9 +265,9 @@ Estimate method: Microsoft Learn licensing documentation and Azure Monitor prici
 - [ ] 7 days of report-only data reviewed, all `reportOnlyFailure` rows explained
 - [ ] Moved to enabled in a test tenant; MFA prompts confirmed for user and admin
 - [ ] Torn down cleanly; security defaults re-enabled on the test tenant
-- [ ] Break-glass sign-in alert added to Pattern 02
+- [ ] Break-glass sign-in alert added to Blueprint 02
 
-The pattern moves to **Ready** when every box is checked.
+The blueprint moves to **Ready** when every box is checked.
 
 ## Changelog
 

@@ -1,4 +1,4 @@
-# Example variables for Pattern 03: Identity Baseline.
+# Example variables for Blueprint 03: Identity Baseline.
 # Copy to ../terraform/terraform.tfvars (ignored by git) and replace every value.
 #
 # BEFORE deploying: create two break-glass accounts and record their object IDs.
@@ -32,5 +32,5 @@ enable_risk_policies = false
 
 admin_sign_in_frequency_hours = 4
 
-# From Pattern 01. Set to null to skip log export.
+# From Blueprint 01. Set to null to skip log export.
 workspace_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-logging-contoso-prod-eus2/providers/Microsoft.OperationalInsights/workspaces/log-platform-contoso-prod-eus2"

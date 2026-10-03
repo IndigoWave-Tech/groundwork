@@ -1,5 +1,5 @@
 variable "org_code" {
-  description = "Short, lowercase organization code used in names. Match Pattern 01."
+  description = "Short, lowercase organization code used in names. Match Blueprint 01."
   type        = string
 
   validation {
@@ -80,7 +80,7 @@ variable "admin_sign_in_frequency_hours" {
 }
 
 variable "workspace_resource_id" {
-  description = "Resource ID of the Pattern 01 Log Analytics workspace. Entra sign-in and audit logs are sent there. Set to null to skip."
+  description = "Resource ID of the Blueprint 01 Log Analytics workspace. Entra sign-in and audit logs are sent there. Set to null to skip."
   type        = string
   default     = null
 }

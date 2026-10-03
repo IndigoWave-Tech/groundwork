@@ -17,8 +17,8 @@
 - Role-based access with least-privilege defaults
 - Hub network with sensible address planning for future growth
 
-Scope may change as the pattern is built. Every change and its reasoning will be recorded in the design decisions section of this guide.
+Scope may change as the blueprint is built. Every change and its reasoning will be recorded in the design decisions section of this guide.
 
 ---
 
-This guide will follow the standard [pattern template](../../docs/PATTERN_TEMPLATE.md). See the [main README](../../README.md) for status definitions.
+This guide will follow the standard [blueprint template](../../docs/BLUEPRINT_TEMPLATE.md). See the [main README](../../README.md) for status definitions.

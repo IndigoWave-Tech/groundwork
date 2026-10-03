@@ -1,5 +1,5 @@
 # =============================================================================
-# Groundwork Pattern 03: Identity Baseline (Terraform)
+# Groundwork Blueprint 03: Identity Baseline (Terraform)
 # Exclusion groups, named locations, and Entra log export.
 # Conditional Access policies are in conditional-access.tf.
 # =============================================================================
@@ -62,7 +62,7 @@ resource "azuread_named_location" "allowed_countries" {
 }
 
 # ----------------------------------------------------------------------------
-# Entra ID sign-in and audit logs to the Pattern 01 workspace
+# Entra ID sign-in and audit logs to the Blueprint 01 workspace
 # Without this, report-only policy results are only visible in the portal
 # for 30 days (P1). With it, they are queryable and retained for 90.
 # ----------------------------------------------------------------------------
