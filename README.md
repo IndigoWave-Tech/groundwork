@@ -17,6 +17,7 @@ Azure patterns ship in both **Bicep** and **Terraform**. AWS and Google Cloud pa
 - [Design principles](#design-principles)
 - [Repository structure](#repository-structure)
 - [Contributing and feedback](#contributing-and-feedback)
+- [Using these patterns responsibly](#using-these-patterns-responsibly)
 - [Want this run for you?](#want-this-run-for-you)
 
 ---
@@ -72,13 +73,15 @@ This is not a generic module collection. Microsoft, HashiCorp and others already
 
 Patterns are numbered in the order most organizations should adopt them. The landing zone comes first because every other pattern deploys into it.
 
+As of October 2026, Pattern 03 has deployable code on `main`. Patterns 01 and 02 are built and under review on their own branches (`patterns/01-landing-zone` and `patterns/02-monitoring-alerting`); their rows above change when they merge.
+
 **Status definitions**
 
 | Status | Meaning |
 |---|---|
 | Planned | Scoped, not yet built |
-| In progress | Code exists and passes CI, documentation incomplete |
-| Ready | Passes CI, fully documented, and has been deployed and torn down in a sandbox subscription |
+| In progress | Code and guide complete and passing CI; not yet deployed and torn down in a sandbox |
+| Ready | Passes CI, fully documented, and has been deployed and torn down in a sandbox subscription with the validation checklist completed |
 
 ---
 
@@ -112,11 +115,11 @@ cd groundwork/patterns/01-landing-zone
 **Step 4. Copy the example parameter file and fill in your values.** Example files are the only parameter files committed to this repository. Your copy should never be committed anywhere public.
 
 ```bash
-# Bicep
-cp examples/main.example.bicepparam main.local.bicepparam
+# Bicep: keep the copy next to the example so its "using" line still finds bicep/main.bicep
+cp examples/main.example.bicepparam examples/main.local.bicepparam
 
-# Terraform
-cp examples/terraform.example.tfvars terraform.tfvars
+# Terraform: a terraform.tfvars file in the terraform folder is loaded automatically
+cp examples/terraform.example.tfvars terraform/terraform.tfvars
 ```
 
 The `.gitignore` in this repository already excludes `*.local.bicepparam` and `*.tfvars` so a real file cannot be committed by accident.
@@ -124,17 +127,17 @@ The `.gitignore` in this repository already excludes `*.local.bicepparam` and `*
 **Step 5. Deploy to a sandbox first.** Use a non-production subscription, account or project. Follow the deploy-from-zero steps in the guide.
 
 ```bash
-# Bicep example (subscription scope)
+# Bicep example (subscription scope). The parameter file names the template in its
+# "using" line, so --template-file is not passed; the CLI rejects the two together.
 az deployment sub create \
   --location eastus2 \
-  --template-file bicep/main.bicep \
-  --parameters main.local.bicepparam
+  --parameters examples/main.local.bicepparam
 
 # Terraform example
 cd terraform
 terraform init
-terraform plan -var-file=../terraform.tfvars
-terraform apply -var-file=../terraform.tfvars
+terraform plan -out=plan.tfplan
+terraform apply plan.tfplan
 ```
 
 **Step 6. Run the validation checklist.** Every guide includes observable checks (a policy shows Compliant, an alert fires on a test condition, a restore succeeds). Do not consider the deployment done until each one passes.
@@ -144,6 +147,7 @@ terraform apply -var-file=../terraform.tfvars
 ### If you are reviewing or adapting the code
 
 - Each pattern's design decisions table lists what was chosen, what was rejected, and why. Start there.
+- [docs/CONVENTIONS.md](docs/CONVENTIONS.md) explains the naming, input, security and code rules every pattern follows, so you can tell a deliberate choice from an accident.
 - Run the same checks CI runs (see [How changes are checked](#how-changes-are-checked)) on your fork before relying on a change.
 - Open an issue if you believe a default is wrong for the stated audience. Disagreement with reasoning attached is the most useful contribution.
 
@@ -154,7 +158,7 @@ terraform apply -var-file=../terraform.tfvars
 Each pattern folder contains:
 
 - **Deployable code** in Bicep and/or Terraform, with example parameter files only
-- **An architecture diagram**
+- **An architecture diagram**, as a Mermaid block inside the guide so it renders on GitHub and changes with the text
 - **A deploy-from-zero guide** that assumes nothing has ever been set up before
 - **A validation checklist** to confirm the deployment did what it claims
 - **A teardown procedure**
@@ -180,14 +184,16 @@ Every pull request and every push to `main` runs the [Validate workflow](.github
 To run the same checks locally before opening a pull request:
 
 ```bash
-# Bicep
-az bicep build --file patterns/01-landing-zone/bicep/main.bicep
+# Bicep (replace 01-landing-zone with the pattern you changed)
+az bicep build --file patterns/01-landing-zone/bicep/main.bicep --stdout > /dev/null
 az bicep lint  --file patterns/01-landing-zone/bicep/main.bicep
+az bicep build-params --file patterns/01-landing-zone/examples/main.example.bicepparam --stdout > /dev/null
 
 # Terraform
 terraform -chdir=patterns/01-landing-zone/terraform fmt -check -recursive
 terraform -chdir=patterns/01-landing-zone/terraform init -backend=false
 terraform -chdir=patterns/01-landing-zone/terraform validate
+tflint --init --config "$(pwd)/.tflint.hcl"
 tflint --recursive --config "$(pwd)/.tflint.hcl"
 
 # Security scan
@@ -217,26 +223,38 @@ Marking a pattern **Ready** additionally requires a real deployment and teardown
 groundwork/
 ├── patterns/
 │   ├── 01-landing-zone/
-│   │   ├── README.md          Owner summary and full technical guide
-│   │   ├── bicep/             Azure deployment (Bicep)
-│   │   ├── terraform/         Azure deployment (Terraform)
-│   │   ├── diagrams/          Architecture diagrams
-│   │   └── examples/          Example parameter files, no real values
 │   ├── 02-monitoring-alerting/
 │   ├── 03-identity-baseline/
 │   ├── 04-backup-recovery/
 │   ├── 05-cost-guardrails/
 │   └── 06-multicloud-guardrails/
 ├── docs/
-│   └── PATTERN_TEMPLATE.md    Standard structure every pattern guide follows
+│   ├── PATTERN_TEMPLATE.md    Standard structure every pattern guide follows
+│   └── CONVENTIONS.md         Naming, input, security and code rules every pattern follows
 ├── .github/
 │   ├── workflows/validate.yml Automated checks on every change
-│   └── pull_request_template.md
+│   ├── pull_request_template.md
+│   └── CODEOWNERS
 ├── bicepconfig.json           Bicep linter rules
 ├── ps-rule.yaml               PSRule for Azure options
 ├── .tflint.hcl                TFLint configuration
+├── CONTRIBUTING.md            How to propose a change
+├── SECURITY.md                How to report a vulnerability
 ├── LICENSE                    MIT
 └── README.md
+```
+
+Every pattern folder has the same layout:
+
+```text
+NN-pattern-name/
+├── README.md              Owner summary and full technical guide
+├── bicep/                 Azure deployment (Bicep): main.bicep plus modules/
+│   └── README.md          Only when a pattern has no Bicep, explaining why (Pattern 03)
+├── terraform/             Deployment (Terraform)
+├── examples/              Example parameter files, no real values
+├── diagrams/              Exported images, if any; the diagram source is a Mermaid block in README.md
+└── <shared>/              Optional: definitions both languages load (Pattern 02 has workbook/)
 ```
 
 ---
@@ -249,7 +267,7 @@ Issues and pull requests are welcome. The most useful contributions are:
 - A step in a deploy-from-zero guide that did not work as written
 - A cost estimate that no longer matches current pricing
 
-Every pull request goes through the template checklist: no environment-specific data, documentation updated, status accurate, and no claims that cannot be backed up.
+Every pull request goes through the template checklist: no environment-specific data, documentation updated, status accurate, and no claims that cannot be backed up. [CONTRIBUTING.md](CONTRIBUTING.md) has the branch, commit and local-check rules. Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
 ---
 
