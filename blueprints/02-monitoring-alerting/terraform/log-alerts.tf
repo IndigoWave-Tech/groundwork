@@ -5,15 +5,19 @@
 
 locals {
   log_alerts = {
+    # The window is 24 hours so a machine that reported at any point in the last
+    # day and has now been silent for longer than the threshold keeps the alert
+    # firing until it returns. See ../bicep/modules/log-alerts.bicep.
     vm-heartbeat-missing = {
       display_name         = "Overnight Watch: virtual machine stopped reporting"
-      description          = "A virtual machine that normally sends a heartbeat has not done so for ${var.heartbeat_missing_minutes} minutes. It is off, disconnected, or the agent has failed."
+      description          = "A virtual machine that reported in the last 24 hours has not sent a heartbeat for ${var.heartbeat_missing_minutes} minutes. It is off, disconnected, or the agent has failed."
       severity             = 0
       action               = "critical"
       evaluation_frequency = "PT5M"
-      window_duration      = "PT30M"
+      window_duration      = "P1D"
       query                = <<-KQL
         Heartbeat
+        | where TimeGenerated > ago(1d)
         | summarize LastHeartbeat = max(TimeGenerated) by Computer, _ResourceId
         | where LastHeartbeat < ago(${var.heartbeat_missing_minutes}m)
       KQL
@@ -70,6 +74,8 @@ locals {
       evaluation_periods   = 1
       min_failing_periods  = 1
     }
+    # Query shape follows the Microsoft Learn sample in "Monitor operational issues
+    # in your Log Analytics workspace" (alert rules section).
     workspace-daily-cap-reached = {
       display_name         = "Overnight Watch: log ingestion stopped at the daily cap"
       description          = "The Log Analytics workspace reached its daily ingestion cap. Logs are being dropped until the cap resets. Either something is logging in a loop or the cap needs raising."

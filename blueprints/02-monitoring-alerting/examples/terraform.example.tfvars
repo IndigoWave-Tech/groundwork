@@ -24,8 +24,8 @@ critical_sms_receivers = [
 # Warning: reviewed in the morning.
 warning_emails = ["it@contoso.example"]
 
-# Display names, not region codes. Always include Global.
-service_health_regions = ["East US 2", "Central US", "Global"]
+# Display names, not region codes. Global is added automatically.
+service_health_regions = ["East US 2", "Central US"]
 
 heartbeat_missing_minutes = 10
 low_disk_free_percent     = 10

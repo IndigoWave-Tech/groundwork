@@ -7,13 +7,22 @@
 
 targetScope = 'resourceGroup'
 
+@description('Naming suffix, <org>-<env>-<regionShort>.')
 param suffix string
+
+@description('Email addresses for critical alerts.')
 param criticalEmails array
+
+@description('SMS receivers for critical alerts: objects with countryCode and phoneNumber.')
 param criticalSmsReceivers array
+
+@description('Email addresses for warning alerts.')
 param warningEmails array
+
+@description('Tags for the action groups.')
 param tags object
 
-resource critical 'Microsoft.Insights/actionGroups@2024-10-01-preview' = {
+resource critical 'Microsoft.Insights/actionGroups@2023-01-01' = {
   name: 'ag-critical-${suffix}'
   location: 'global'
   tags: tags
@@ -37,7 +46,7 @@ resource critical 'Microsoft.Insights/actionGroups@2024-10-01-preview' = {
   }
 }
 
-resource warning 'Microsoft.Insights/actionGroups@2024-10-01-preview' = {
+resource warning 'Microsoft.Insights/actionGroups@2023-01-01' = {
   name: 'ag-warning-${suffix}'
   location: 'global'
   tags: tags

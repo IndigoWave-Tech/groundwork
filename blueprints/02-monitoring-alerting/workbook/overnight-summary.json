@@ -151,7 +151,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "Heartbeat\n| summarize LastHeartbeat = max(TimeGenerated) by Computer, OSType, ResourceGroup\n| extend MinutesSilent = datetime_diff(\"minute\", now(), LastHeartbeat)\n| extend Status = iff(MinutesSilent > 10, \"Silent\", \"Reporting\")\n| order by MinutesSilent desc",
+        "query": "Heartbeat\n| summarize LastHeartbeat = max(TimeGenerated) by Computer, OSType, ResourceGroup\n| extend MinutesSilent = datetime_diff(\"minute\", now(), LastHeartbeat)\n| extend Status = iff(MinutesSilent > __HEARTBEAT_MINUTES__, \"Silent\", \"Reporting\")\n| order by MinutesSilent desc",
         "size": 0,
         "title": "Heartbeat status",
         "timeContextFromParameter": "TimeRange",

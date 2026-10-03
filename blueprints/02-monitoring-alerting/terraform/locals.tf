@@ -18,10 +18,14 @@ locals {
   suffix = "${var.org_code}-${var.environment}-${local.loc}"
 
   tags = merge(var.tags, {
-    blueprint = "groundwork-02-overnight-watch"
+    blueprint = "groundwork-02-monitoring-alerting"
   })
 
   subscription_id = data.azurerm_subscription.current.id
+
+  # Global covers incidents that are not tied to one region (identity, portal, DNS).
+  # Added here rather than validated, so both paths behave the same whatever the input.
+  service_health_regions = distinct(concat(var.service_health_regions, ["Global"]))
 
   # Workbook names must be UUIDs. Derive one so redeploys update in place.
   workbook_name = uuidv5("url", "groundwork/${local.suffix}/overnight-summary")

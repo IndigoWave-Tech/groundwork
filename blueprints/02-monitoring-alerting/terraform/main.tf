@@ -81,6 +81,8 @@ resource "azurerm_application_insights_workbook" "overnight_summary" {
   description         = "Changes, alerts, machine health and log volume for the last 24 hours. Open this first every morning."
   source_id           = lower(var.workspace_resource_id)
   category            = "workbook"
-  data_json           = file("${path.module}/../workbook/overnight-summary.json")
-  tags                = local.tags
+  # The JSON carries a placeholder for the heartbeat threshold so the workbook
+  # and the alert rule always agree. Bicep does the same replace.
+  data_json = replace(file("${path.module}/../workbook/overnight-summary.json"), "__HEARTBEAT_MINUTES__", tostring(var.heartbeat_missing_minutes))
+  tags      = local.tags
 }

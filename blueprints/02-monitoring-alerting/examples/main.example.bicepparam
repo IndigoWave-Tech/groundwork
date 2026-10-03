@@ -1,5 +1,5 @@
 // Example parameters for Blueprint 02: Overnight Watch.
-// Copy to main.local.bicepparam (ignored by git) and replace every value.
+// Copy to examples/main.local.bicepparam (ignored by git) and replace every value.
 // Deploy Blueprint 01 first; this blueprint needs its workspace ID.
 
 using '../bicep/main.bicep'
@@ -26,8 +26,8 @@ param criticalSmsReceivers = [
 // Warning: reviewed in the morning.
 param warningEmails = ['it@contoso.example']
 
-// Display names, not region codes. Always include Global.
-param serviceHealthRegions = ['East US 2', 'Central US', 'Global']
+// Display names, not region codes. Global is added automatically.
+param serviceHealthRegions = ['East US 2', 'Central US']
 
 param heartbeatMissingMinutes = 10
 param lowDiskFreePercent = 10

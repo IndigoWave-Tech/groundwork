@@ -8,15 +8,33 @@
 
 targetScope = 'resourceGroup'
 
+@description('Azure region for the rules.')
 param location string
+
+@description('Resource ID of the Log Analytics workspace the rules query.')
 param workspaceResourceId string
+
+@description('Resource ID of the critical action group.')
 param criticalActionGroupId string
+
+@description('Resource ID of the warning action group.')
 param warningActionGroupId string
+
+@description('Minutes without a heartbeat before a machine is considered down.')
 param heartbeatMissingMinutes int
+
+@description('Free disk percentage below which the warning fires.')
 param lowDiskFreePercent int
+
+@description('Tags for the rules.')
 param tags object
 
 // ---- Critical: a machine stopped reporting -------------------------------------
+// The window is 24 hours so a machine that reported at any point in the last day
+// and has now been silent for longer than the threshold keeps the alert firing
+// until it returns (or until it has been silent for a full day). A window equal
+// to the threshold would let a machine that stays down drop out of the query
+// and auto-resolve the alert while it is still down.
 
 resource vmHeartbeat 'Microsoft.Insights/scheduledQueryRules@2026-03-01' = {
   name: 'ow-vm-heartbeat-missing'
@@ -25,11 +43,11 @@ resource vmHeartbeat 'Microsoft.Insights/scheduledQueryRules@2026-03-01' = {
   kind: 'LogAlert'
   properties: {
     displayName: 'Overnight Watch: virtual machine stopped reporting'
-    description: 'A virtual machine that normally sends a heartbeat has not done so for ${heartbeatMissingMinutes} minutes. It is off, disconnected, or the agent has failed.'
+    description: 'A virtual machine that reported in the last 24 hours has not sent a heartbeat for ${heartbeatMissingMinutes} minutes. It is off, disconnected, or the agent has failed.'
     severity: 0
     enabled: true
     evaluationFrequency: 'PT5M'
-    windowSize: 'PT30M'
+    windowSize: 'P1D'
     scopes: [workspaceResourceId]
     targetResourceTypes: ['Microsoft.OperationalInsights/workspaces']
     criteria: {
@@ -37,6 +55,7 @@ resource vmHeartbeat 'Microsoft.Insights/scheduledQueryRules@2026-03-01' = {
         {
           query: '''
 Heartbeat
+| where TimeGenerated > ago(1d)
 | summarize LastHeartbeat = max(TimeGenerated) by Computer, _ResourceId
 | where LastHeartbeat < ago(${heartbeatMissingMinutes}m)
 '''
@@ -164,6 +183,9 @@ AzureDiagnostics
 }
 
 // ---- Warning: the workspace hit its daily cap ------------------------------------
+// Query shape follows the Microsoft Learn sample in "Monitor operational issues in
+// your Log Analytics workspace" (alert rules section): _LogOperation, Ingestion,
+// Data collection status at Warning level.
 
 resource ingestionCapped 'Microsoft.Insights/scheduledQueryRules@2026-03-01' = {
   name: 'ow-workspace-daily-cap-reached'
@@ -206,10 +228,11 @@ _LogOperation
   }
 }
 
-// ---- Warning: a VM stopped sending heartbeats entirely (silence vs. gap) ----------
+// ---- Critical: every machine stopped sending heartbeats (silence vs. gap) ---------
 // Note: the heartbeat rule above catches gaps. This companion rule catches the
 // case where no heartbeat has arrived from any machine, which usually means
-// the workspace or agent configuration broke, not a single VM.
+// the workspace or agent configuration broke, not a single VM. Routed to the
+// critical group at severity 1.
 
 resource noHeartbeats 'Microsoft.Insights/scheduledQueryRules@2026-03-01' = {
   name: 'ow-workspace-no-heartbeats'

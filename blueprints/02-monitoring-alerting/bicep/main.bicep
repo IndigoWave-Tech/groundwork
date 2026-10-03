@@ -20,7 +20,7 @@ targetScope = 'subscription'
 // Parameters
 // ----------------------------------------------------------------------------
 
-@description('Short, lowercase organization code used in resource names. Match Blueprint 01.')
+@description('Short organization code used in resource names. Match Blueprint 01. 2 to 8 letters or digits; normalized to lowercase.')
 @minLength(2)
 @maxLength(8)
 param orgCode string
@@ -49,7 +49,7 @@ param criticalSmsReceivers array = []
 @minLength(1)
 param warningEmails array
 
-@description('Azure region display names to watch for service incidents, for example ["East US 2", "Central US", "Global"]. Always include "Global".')
+@description('Azure region display names to watch for service incidents, for example ["East US 2", "Central US"]. "Global" is added automatically so tenant-wide incidents are never missed.')
 @minLength(1)
 param serviceHealthRegions array
 
@@ -82,11 +82,17 @@ var regionShort = {
   australiaeast: 'aue'
 }
 var loc = regionShort[?location] ?? substring(location, 0, 4)
-var suffix = '${orgCode}-${environment}-${loc}'
+// Normalized to lowercase, as in Blueprint 01; the Terraform path validates the format instead.
+var org = toLower(orgCode)
+var suffix = '${org}-${environment}-${loc}'
 
 var deploymentTags = union(tags, {
-  blueprint: 'groundwork-02-overnight-watch'
+  blueprint: 'groundwork-02-monitoring-alerting'
 })
+
+// Global covers incidents that are not tied to one region (identity, portal, DNS).
+// Added here rather than validated, so both paths behave the same whatever the input.
+var serviceHealthRegionsWithGlobal = union(serviceHealthRegions, ['Global'])
 
 // ----------------------------------------------------------------------------
 // Resource group
@@ -124,7 +130,7 @@ module activityAlerts 'modules/activity-alerts.bicep' = {
   params: {
     criticalActionGroupId: actionGroups.outputs.criticalActionGroupId
     warningActionGroupId: actionGroups.outputs.warningActionGroupId
-    serviceHealthRegions: serviceHealthRegions
+    serviceHealthRegions: serviceHealthRegionsWithGlobal
     tags: deploymentTags
   }
 }
@@ -170,6 +176,7 @@ module workbook 'modules/workbook.bicep' = {
   params: {
     location: location
     workspaceResourceId: workspaceResourceId
+    heartbeatMissingMinutes: heartbeatMissingMinutes
     tags: deploymentTags
   }
 }
@@ -178,7 +185,17 @@ module workbook 'modules/workbook.bicep' = {
 // Outputs
 // ----------------------------------------------------------------------------
 
+@description('Name of the monitoring resource group.')
 output resourceGroupName string = rgMonitoring.name
+
+@description('Resource ID of the critical action group. Blueprints 04 and 05 route their critical alerts here.')
 output criticalActionGroupId string = actionGroups.outputs.criticalActionGroupId
+
+@description('Resource ID of the warning action group. Blueprints 04 and 05 route their warning alerts here.')
 output warningActionGroupId string = actionGroups.outputs.warningActionGroupId
+
+@description('Resource ID of the Overnight Summary workbook.')
 output workbookId string = workbook.outputs.workbookId
+
+@description('Resource ID of the disabled maintenance window suppression rule.')
+output suppressionRuleId string = suppression.outputs.suppressionRuleId

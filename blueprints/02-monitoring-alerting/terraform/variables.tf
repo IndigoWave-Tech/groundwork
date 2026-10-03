@@ -1,5 +1,5 @@
 variable "org_code" {
-  description = "Short, lowercase organization code used in resource names. Match Blueprint 01."
+  description = "Short organization code used in resource names. Match Blueprint 01. 2 to 8 lowercase letters or digits."
   type        = string
 
   validation {
@@ -72,12 +72,12 @@ variable "warning_emails" {
 }
 
 variable "service_health_regions" {
-  description = "Azure region display names to watch for service incidents, for example [\"East US 2\", \"Central US\", \"Global\"]. Always include Global."
+  description = "Azure region display names to watch for service incidents, for example [\"East US 2\", \"Central US\"]. Global is added automatically so tenant-wide incidents are never missed."
   type        = list(string)
 
   validation {
-    condition     = contains(var.service_health_regions, "Global")
-    error_message = "service_health_regions must include \"Global\"."
+    condition     = length(var.service_health_regions) > 0
+    error_message = "service_health_regions must contain at least one region display name."
   }
 }
 

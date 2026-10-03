@@ -6,94 +6,96 @@
 locals {
   activity_alerts = {
     service-health-incident = {
-      description = "Azure reports an active service incident or security advisory affecting a region you use."
+      description = "Overnight Watch: Azure reports an active service incident or security advisory affecting a region you use."
       severity    = "critical"
       category    = "ServiceHealth"
       service_health = {
         events    = ["Incident", "Security"]
-        locations = var.service_health_regions
+        locations = local.service_health_regions
       }
     }
     service-health-maintenance = {
-      description = "Azure has announced planned maintenance or a health advisory for a region you use."
+      description = "Overnight Watch: Azure has announced planned maintenance or a health advisory for a region you use."
       severity    = "warning"
       category    = "ServiceHealth"
       service_health = {
         events    = ["Maintenance", "ActionRequired", "Informational"]
-        locations = var.service_health_regions
+        locations = local.service_health_regions
       }
     }
     resource-health-unavailable = {
-      description = "A resource in this subscription became Unavailable or Degraded according to Azure Resource Health."
+      description = "Overnight Watch: A resource in this subscription became Unavailable or Degraded according to Azure Resource Health."
       severity    = "critical"
       category    = "ResourceHealth"
+      # Platform-initiated only. A deliberate stop or deallocate is user-initiated
+      # and should not page anyone; see README design decisions.
       resource_health = {
         current = ["Unavailable", "Degraded"]
-        reason  = ["PlatformInitiated", "UserInitiated"]
+        reason  = ["PlatformInitiated"]
       }
     }
     admin-resource-group-deleted = {
-      description    = "A resource group was deleted. Everything inside it is gone."
+      description    = "Overnight Watch: A resource group was deleted. Everything inside it is gone."
       severity       = "critical"
       category       = "Administrative"
       operation_name = "Microsoft.Resources/subscriptions/resourceGroups/delete"
     }
     admin-key-vault-deleted = {
-      description    = "A Key Vault was deleted. Soft delete protects the contents for 90 days, but this should never be a surprise."
+      description    = "Overnight Watch: A Key Vault was deleted. Soft delete protects the contents for 90 days, but this should never be a surprise."
       severity       = "critical"
       category       = "Administrative"
       operation_name = "Microsoft.KeyVault/vaults/delete"
     }
     admin-role-assignment-written = {
-      description    = "Someone was granted a role. Permissions changed."
+      description    = "Overnight Watch: Someone was granted a role. Permissions changed."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Authorization/roleAssignments/write"
     }
     admin-role-assignment-deleted = {
-      description    = "Someone was removed from a role. Permissions changed."
+      description    = "Overnight Watch: Someone was removed from a role. Permissions changed."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Authorization/roleAssignments/delete"
     }
     admin-policy-assignment-deleted = {
-      description    = "A policy assignment was deleted. A guardrail from the landing zone may have been removed."
+      description    = "Overnight Watch: A policy assignment was deleted. A guardrail from the landing zone may have been removed."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Authorization/policyAssignments/delete"
     }
     admin-nsg-written = {
-      description    = "A network security group was created or changed. The network boundary moved."
+      description    = "Overnight Watch: A network security group was created or changed. The network boundary moved."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Network/networkSecurityGroups/write"
     }
     admin-nsg-deleted = {
-      description    = "A network security group was deleted. The network boundary moved."
+      description    = "Overnight Watch: A network security group was deleted. The network boundary moved."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Network/networkSecurityGroups/delete"
     }
     admin-nsg-rule-written = {
-      description    = "A network security group rule was created or changed. The network boundary moved."
+      description    = "Overnight Watch: A network security group rule was created or changed. The network boundary moved."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Network/networkSecurityGroups/securityRules/write"
     }
     admin-nsg-rule-deleted = {
-      description    = "A network security group rule was deleted. The network boundary moved."
+      description    = "Overnight Watch: A network security group rule was deleted. The network boundary moved."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Network/networkSecurityGroups/securityRules/delete"
     }
     admin-diagnostics-deleted = {
-      description    = "A diagnostic setting was deleted. Something stopped sending logs to the workspace."
+      description    = "Overnight Watch: A diagnostic setting was deleted. Something stopped sending logs to the workspace."
       severity       = "warning"
       category       = "Administrative"
       operation_name = "Microsoft.Insights/diagnosticSettings/delete"
     }
     defender-security-alert = {
-      description = "Microsoft Defender for Cloud raised a security alert in this subscription."
+      description = "Overnight Watch: Microsoft Defender for Cloud raised a security alert in this subscription."
       severity    = "critical"
       category    = "Security"
     }
@@ -108,6 +110,10 @@ locals {
 # The azurerm provider models one operation_name per alert, where Bicep
 # allows anyOf. That is why NSG and role assignment alerts are split here;
 # the coverage is identical.
+#
+# This resource type has no display name field, so the resource name carries
+# the ow- prefix and the description carries "Overnight Watch:", which is what
+# the notification email shows.
 
 resource "azurerm_monitor_activity_log_alert" "this" {
   for_each = local.activity_alerts

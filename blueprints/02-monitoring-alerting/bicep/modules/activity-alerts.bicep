@@ -3,12 +3,24 @@
 // They cost nothing and need no agent, so they work on day one.
 //
 // Scope is the whole subscription. Location is always 'global' for this type.
+//
+// This resource type has no display name field, so the resource name carries
+// the ow- prefix and the description carries "Overnight Watch:", which is what
+// the notification email shows. Log query alerts, which do have a display
+// name, use the "Overnight Watch: <what>" form directly.
 
 targetScope = 'resourceGroup'
 
+@description('Resource ID of the critical action group.')
 param criticalActionGroupId string
+
+@description('Resource ID of the warning action group.')
 param warningActionGroupId string
+
+@description('Region display names to watch, including Global.')
 param serviceHealthRegions array
+
+@description('Tags for the alert rules.')
 param tags object
 
 var subscriptionScope = [subscription().id]
@@ -22,7 +34,7 @@ resource serviceIncident 'Microsoft.Insights/activityLogAlerts@2026-01-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'Azure reports an active service incident or security advisory affecting a region you use.'
+    description: 'Overnight Watch: Azure reports an active service incident or security advisory affecting a region you use.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -49,7 +61,7 @@ resource serviceMaintenance 'Microsoft.Insights/activityLogAlerts@2026-01-01' = 
   location: 'global'
   tags: tags
   properties: {
-    description: 'Azure has announced planned maintenance or a health advisory for a region you use.'
+    description: 'Overnight Watch: Azure has announced planned maintenance or a health advisory for a region you use.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -77,7 +89,7 @@ resource resourceUnavailable 'Microsoft.Insights/activityLogAlerts@2026-01-01' =
   location: 'global'
   tags: tags
   properties: {
-    description: 'A resource in this subscription became Unavailable or Degraded according to Azure Resource Health.'
+    description: 'Overnight Watch: A resource in this subscription became Unavailable or Degraded according to Azure Resource Health.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -89,12 +101,9 @@ resource resourceUnavailable 'Microsoft.Insights/activityLogAlerts@2026-01-01' =
             { field: 'properties.currentHealthStatus', equals: 'Degraded' }
           ]
         }
-        {
-          anyOf: [
-            { field: 'properties.cause', equals: 'PlatformInitiated' }
-            { field: 'properties.cause', equals: 'UserInitiated' }
-          ]
-        }
+        // Platform-initiated only. A deliberate stop or deallocate is user-initiated
+        // and should not page anyone; see README design decisions.
+        { field: 'properties.cause', equals: 'PlatformInitiated' }
       ]
     }
     actions: toCritical
@@ -110,7 +119,7 @@ resource resourceGroupDeleted 'Microsoft.Insights/activityLogAlerts@2026-01-01' 
   location: 'global'
   tags: tags
   properties: {
-    description: 'A resource group was deleted. Everything inside it is gone.'
+    description: 'Overnight Watch: A resource group was deleted. Everything inside it is gone.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -129,7 +138,7 @@ resource keyVaultDeleted 'Microsoft.Insights/activityLogAlerts@2026-01-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'A Key Vault was deleted. Soft delete protects the contents for 90 days, but this should never be a surprise.'
+    description: 'Overnight Watch: A Key Vault was deleted. Soft delete protects the contents for 90 days, but this should never be a surprise.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -148,7 +157,7 @@ resource roleAssignmentChanged 'Microsoft.Insights/activityLogAlerts@2026-01-01'
   location: 'global'
   tags: tags
   properties: {
-    description: 'Someone was granted or removed from a role. Permissions changed.'
+    description: 'Overnight Watch: Someone was granted or removed from a role. Permissions changed.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -172,7 +181,7 @@ resource policyAssignmentDeleted 'Microsoft.Insights/activityLogAlerts@2026-01-0
   location: 'global'
   tags: tags
   properties: {
-    description: 'A policy assignment was deleted. A guardrail from the landing zone may have been removed.'
+    description: 'Overnight Watch: A policy assignment was deleted. A guardrail from the landing zone may have been removed.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -191,7 +200,7 @@ resource nsgChanged 'Microsoft.Insights/activityLogAlerts@2026-01-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'A network security group or one of its rules was created, changed or deleted. The network boundary moved.'
+    description: 'Overnight Watch: A network security group or one of its rules was created, changed or deleted. The network boundary moved.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -217,7 +226,7 @@ resource diagnosticsDeleted 'Microsoft.Insights/activityLogAlerts@2026-01-01' = 
   location: 'global'
   tags: tags
   properties: {
-    description: 'A diagnostic setting was deleted. Something stopped sending logs to the workspace.'
+    description: 'Overnight Watch: A diagnostic setting was deleted. Something stopped sending logs to the workspace.'
     enabled: true
     scopes: subscriptionScope
     condition: {
@@ -236,7 +245,7 @@ resource securityAlert 'Microsoft.Insights/activityLogAlerts@2026-01-01' = {
   location: 'global'
   tags: tags
   properties: {
-    description: 'Microsoft Defender for Cloud raised a security alert in this subscription.'
+    description: 'Overnight Watch: Microsoft Defender for Cloud raised a security alert in this subscription.'
     enabled: true
     scopes: subscriptionScope
     condition: {

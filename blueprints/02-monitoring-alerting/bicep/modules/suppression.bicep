@@ -9,7 +9,10 @@
 
 targetScope = 'resourceGroup'
 
+@description('Naming suffix, <org>-<env>-<regionShort>.')
 param suffix string
+
+@description('Tags for the rule.')
 param tags object
 
 resource maintenanceWindow 'Microsoft.AlertsManagement/actionRules@2021-08-08' = {
