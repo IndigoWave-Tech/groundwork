@@ -1,6 +1,6 @@
 ## What this changes
 
-<!-- One or two sentences. Which pattern, and what is new or different? -->
+<!-- One or two sentences. Which blueprint, and what is new or different? -->
 
 ## Checklist
 
@@ -11,10 +11,10 @@
 - [ ] Only `*.example.tfvars` and `*.example.bicepparam` files added
 
 **Documentation**
-- [ ] Pattern guide follows `docs/PATTERN_TEMPLATE.md`
+- [ ] Blueprint guide follows `docs/BLUEPRINT_TEMPLATE.md`
 - [ ] Plain-language summary updated (what it protects from, monthly cost)
 - [ ] Design decisions table updated for any non-obvious choice
-- [ ] Status in the main README matches the pattern's real state
+- [ ] Status in the main README matches the blueprint's real state
 
 **Truth check**
 - [ ] No claims of client deployments, uptime, or certifications that cannot be proven
@@ -22,4 +22,4 @@
 
 **Validation**
 - [ ] CI passes
-- [ ] If marking a pattern Ready: deployed and torn down in a sandbox, validation checklist completed
+- [ ] If marking a blueprint Ready: deployed and torn down in a sandbox, validation checklist completed

@@ -5,7 +5,7 @@
 # defaults to report-only. Report-only evaluates and logs the outcome without
 # enforcing it. Review the impact in the sign-in logs, then flip to enabled.
 #
-# Naming: "CA<nn> - <what it does>". Numbers group by purpose:
+# Naming: "CA<nnn> - <what it does>". Numbers group by purpose:
 #   CA0xx  Block the worst things
 #   CA1xx  Require MFA
 #   CA2xx  Admin hardening
@@ -116,7 +116,10 @@ resource "azuread_conditional_access_policy" "ca103_mfa_security_info_registrati
     users {
       included_users  = ["All"]
       excluded_groups = local.exclude_mfa
-      # Guests cannot register security info in your tenant; exclude to avoid noise.
+      # Guests are excluded from this policy: in most configurations they register
+      # security information in their home tenant, and those who do register here
+      # are still held to MFA at sign-in by CA102. Excluding them avoids noise in
+      # the report-only data.
       excluded_guests_or_external_users {
         guest_or_external_user_types = ["b2bCollaborationGuest", "b2bCollaborationMember", "b2bDirectConnectUser", "otherExternalUser", "serviceProvider"]
         external_tenants {
@@ -126,6 +129,9 @@ resource "azuread_conditional_access_policy" "ca103_mfa_security_info_registrati
     }
 
     locations {
+      # "AllTrusted" is every location marked trusted in the tenant, not only the
+      # one this blueprint creates. If other trusted locations exist, they relax
+      # this policy too; review them before enabling. See the guide.
       included_locations = ["All"]
       excluded_locations = ["AllTrusted"]
     }
@@ -190,12 +196,14 @@ resource "azuread_conditional_access_policy" "ca202_mfa_azure_management" {
   }
 }
 
-# ---- CA203: Admin portal session controls -----------------------------------------
-# Admin sessions expire and are never persisted. A stolen admin browser
-# session on a shared machine is worth much less if it dies in four hours.
+# ---- CA203: Admin portal sign-in frequency ------------------------------------------
+# Admin sessions to the admin portals and Azure management expire. A stolen
+# admin session on a shared machine is worth much less if it dies in four
+# hours. The sign-in frequency control can target specific apps; the
+# persistent-browser control cannot, which is why it lives in CA204.
 
 resource "azuread_conditional_access_policy" "ca203_admin_session" {
-  display_name = "CA203 - Admin portals: re-authenticate every ${var.admin_sign_in_frequency_hours}h, no persistent browser"
+  display_name = "CA203 - Admin portals: periodic re-authentication"
   state        = var.policy_state
 
   conditions {
@@ -214,11 +222,39 @@ resource "azuread_conditional_access_policy" "ca203_admin_session" {
   session_controls {
     sign_in_frequency        = var.admin_sign_in_frequency_hours
     sign_in_frequency_period = "hours"
-    persistent_browser_mode  = "never"
+  }
+}
+
+# ---- CA204: Admin browser sessions do not persist ----------------------------------
+# Microsoft documents that the persistent browser session control requires the
+# policy to target all resources ("All cloud apps"), so it cannot share CA203's
+# app scope. Scoped to the admin roles so ordinary users keep "stay signed in".
+
+resource "azuread_conditional_access_policy" "ca204_admin_browser_persistence" {
+  display_name = "CA204 - Admin browser sessions do not persist"
+  state        = var.policy_state
+
+  conditions {
+    client_app_types = ["all"]
+
+    applications {
+      included_applications = ["All"]
+    }
+
+    users {
+      included_roles  = local.admin_roles
+      excluded_groups = local.exclude_break_glass_only
+    }
+  }
+
+  session_controls {
+    persistent_browser_mode = "never"
   }
 }
 
 # ---- CA301 / CA302: Risk-based (Entra ID P2 only) ----------------------------------
+# Session controls follow Microsoft's current templates for risk policies:
+# re-authentication every time the risk condition is met, not on a timer.
 
 resource "azuread_conditional_access_policy" "ca301_sign_in_risk" {
   count = var.enable_risk_policies ? 1 : 0
@@ -246,8 +282,7 @@ resource "azuread_conditional_access_policy" "ca301_sign_in_risk" {
   }
 
   session_controls {
-    sign_in_frequency        = 1
-    sign_in_frequency_period = "hours"
+    sign_in_frequency_interval = "everyTime"
   }
 }
 
@@ -277,8 +312,7 @@ resource "azuread_conditional_access_policy" "ca302_user_risk" {
   }
 
   session_controls {
-    sign_in_frequency        = 1
-    sign_in_frequency_period = "hours"
+    sign_in_frequency_interval = "everyTime"
   }
 }
 

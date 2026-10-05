@@ -32,12 +32,12 @@ jobs:
       - name: Find infrastructure code
         id: find
         run: |
-          if find patterns \( -name '*.bicep' -o -name '*.bicepparam' \) -print -quit | grep -q .; then
+          if find blueprints \( -name '*.bicep' -o -name '*.bicepparam' \) -print -quit | grep -q .; then
             echo "bicep=true" >> "$GITHUB_OUTPUT"
           else
             echo "bicep=false" >> "$GITHUB_OUTPUT"
           fi
-          if find patterns -name '*.tf' -print -quit | grep -q .; then
+          if find blueprints -name '*.tf' -print -quit | grep -q .; then
             echo "terraform=true" >> "$GITHUB_OUTPUT"
           else
             echo "terraform=false" >> "$GITHUB_OUTPUT"
@@ -64,13 +64,13 @@ jobs:
             az bicep build --file "${file}" --stdout > /dev/null
             az bicep lint --file "${file}"
             echo "::endgroup::"
-          done < <(find patterns -name '*.bicep' -print0)
+          done < <(find blueprints -name '*.bicep' -print0)
 
       - name: PSRule for Azure
         uses: microsoft/ps-rule@v2.9.0
         with:
           modules: PSRule.Rules.Azure
-          inputPath: patterns/
+          inputPath: blueprints/
           option: ps-rule.yaml
 
   terraform:
@@ -86,12 +86,12 @@ jobs:
           terraform_wrapper: false
 
       - name: Format check
-        run: terraform fmt -check -recursive -diff patterns
+        run: terraform fmt -check -recursive -diff blueprints
 
       - name: Validate each module
         run: |
           set -euo pipefail
-          find patterns -name '*.tf' -printf '%h\n' | sort -u | while read -r dir; do
+          find blueprints -name '*.tf' -printf '%h\n' | sort -u | while read -r dir; do
             echo "::group::${dir}"
             terraform -chdir="${dir}" init -backend=false -input=false
             terraform -chdir="${dir}" validate
@@ -118,7 +118,7 @@ jobs:
       - name: Checkov
         uses: bridgecrewio/checkov-action@v12
         with:
-          directory: patterns
+          directory: blueprints
           quiet: true
 
   result:

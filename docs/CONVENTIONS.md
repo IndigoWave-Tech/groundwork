@@ -1,12 +1,12 @@
 # Conventions
 
-Every pattern in Groundwork follows the same rules for names, inputs, security and code shape. This page is the reference for those rules. It exists so that a reviewer can tell a deliberate choice from an accident, and so that a contributor can build a new pattern that looks and behaves like the existing ones.
+Every blueprint in Groundwork follows the same rules for names, inputs, security and code shape. This page is the reference for those rules. It exists so that a reviewer can tell a deliberate choice from an accident, and so that a contributor can build a new blueprint that looks and behaves like the existing ones.
 
-Where a pattern deviates from a rule, its design decisions table says so and why.
+Where a blueprint deviates from a rule, its design decisions table says so and why.
 
 ## 1. Status and truth
 
-Each pattern has exactly one status, defined in the [root README](../README.md): Planned, In progress, or Ready. Ready is earned only by a real deployment and teardown in a sandbox with the validation checklist completed. Until then a pattern is described as a reference pattern built to production standards, never as deployed, proven, or in use.
+Each blueprint has exactly one status, defined in the [root README](../README.md): Planned, In progress, or Ready. Ready is earned only by a real deployment and teardown in a sandbox with the validation checklist completed. Until then a blueprint is described as a reference blueprint built to production standards, never as deployed, proven, or in use.
 
 Every cost figure says where it came from and when: an estimate names its method and date; an assumption gives its reasoning.
 
@@ -21,14 +21,14 @@ Resources are named `<type>-<workload>-<suffix>`, where `<type>` is the Microsof
 | Part | Source | Example |
 |---|---|---|
 | type | Cloud Adoption Framework abbreviation | `rg`, `log`, `vnet`, `kv`, `ag` |
-| workload | What the resource is for, fixed by the pattern | `platform-logging`, `hub`, `critical` |
+| workload | What the resource is for, fixed by the blueprint | `platform-logging`, `hub`, `critical` |
 | orgCode | Input: 2 to 8 lowercase letters or digits | `contoso` |
 | environment | Input: one of `prod`, `nonprod`, `sandbox` | `prod` |
 | regionShort | Derived from `location` by the table below | `eus2` |
 
 Examples: `rg-platform-logging-contoso-prod-eus2`, `log-platform-contoso-prod-eus2`, `ag-critical-contoso-prod-eus2`.
 
-The region map is identical in every pattern's `main.bicep` (the `regionShort` variable) and `locals.tf` (the `region_short` local). A region not in the table falls back to the first four characters of its name.
+The region map is identical in every blueprint's `main.bicep` (the `regionShort` variable) and `locals.tf` (the `region_short` local). A region not in the table falls back to the first four characters of its name.
 
 | Region | Short | Region | Short |
 |---|---|---|---|
@@ -39,19 +39,19 @@ The region map is identical in every pattern's `main.bicep` (the `regionShort` v
 | westus3 | wus3 | uksouth | uks |
 | southcentralus | scus | australiaeast | aue |
 
-Resource groups are `rg-platform-<purpose>-<suffix>`, and each pattern owns its own: Pattern 01 owns `logging`, `network` and `security`; Pattern 02 owns `monitoring`; Pattern 04 will own `backup`; Pattern 05 owns no resource group unless it needs one for cost exports (`finops`).
+Resource groups are `rg-platform-<purpose>-<suffix>`, and each blueprint owns its own: Blueprint 01 owns `logging`, `network` and `security`; Blueprint 02 owns `monitoring`; Blueprint 04 will own `backup`; Blueprint 05 owns no resource group unless it needs one for cost exports (`finops`).
 
-Display names of alerts and policy assignments carry a pattern prefix so they can be told apart in a portal list: `Landing zone: <what>` (01), `Overnight Watch: <what>` (02), `CA<nnn> - <what>` (03), `Backup: <what>` (04), `Cost guardrail: <what>` (05).
+Display names of alerts and policy assignments carry a blueprint prefix so they can be told apart in a portal list: `Landing zone: <what>` (01), `Overnight Watch: <what>` (02), `CA<nnn> - <what>` (03), `Backup: <what>` (04), `Cost guardrail: <what>` (05).
 
-Tags: every resource group carries `owner`, `environment` and `costCenter`. Pattern 01 requires them by policy and inherits them to resources. Every pattern adds `pattern = groundwork-NN-<name>` to its deployment tags, where `NN-<name>` is the pattern's folder name.
+Tags: every resource group carries `owner`, `environment` and `costCenter`. Blueprint 01 requires them by policy and inherits them to resources. Every blueprint adds `blueprint = groundwork-NN-<name>` to its deployment tags, where `NN-<name>` is the blueprint's folder name.
 
 Globally unique names with a length limit (Key Vault, storage accounts) are built from a shortened form of the suffix plus a deterministic hash, computed in one place, and both languages must produce the same name. The guide states the worked length for the longest allowed inputs.
 
 ## 3. Inputs and outputs
 
-Every Azure pattern takes `orgCode` / `org_code`, `environment` (`prod`, `nonprod`, `sandbox`), `location`, and `tags` (an object with `owner`, `environment`, `costCenter`). Later patterns use the same values as Pattern 01. A tenant-scoped pattern (03) omits `environment`, `location` and `tags` because Microsoft Entra objects have none, and says so in its guide.
+Every Azure blueprint takes `orgCode` / `org_code`, `environment` (`prod`, `nonprod`, `sandbox`), `location`, and `tags` (an object with `owner`, `environment`, `costCenter`). Later blueprints use the same values as Blueprint 01. A tenant-scoped blueprint (03) omits `environment`, `location` and `tags` because Microsoft Entra objects have none, and says so in its guide.
 
-Anything one pattern needs from another is a resource ID passed as an input, never looked up by name. Pattern 02 takes `workspaceResourceId` from Pattern 01's `logAnalyticsWorkspaceId` output; Patterns 04 and 05 take the action group IDs from Pattern 02. No pattern hard-codes another pattern's names. Each guide ends its deploy section with an outputs table saying which later pattern consumes each output.
+Anything one blueprint needs from another is a resource ID passed as an input, never looked up by name. Blueprint 02 takes `workspaceResourceId` from Blueprint 01's `logAnalyticsWorkspaceId` output; Blueprints 04 and 05 take the action group IDs from Blueprint 02. No blueprint hard-codes another blueprint's names. Each guide ends its deploy section with an outputs table saying which later blueprint consumes each output.
 
 Every Bicep parameter has `@description`, plus `@allowed`, `@minValue`, `@maxValue` or `@minLength` where a range or format exists. Every Terraform variable has `description` and a `validation` block for anything with a format or range. Bicep and Terraform validate the same things, so the two paths accept and reject the same inputs.
 
@@ -63,13 +63,13 @@ Example files use fictional values only: `contoso`, `*.example` email domains, `
 
 Nothing environment-specific is committed: no tenant IDs, subscription IDs, client names, state files or secrets. The `.gitignore` blocks `*.tfvars` (except `*.example.tfvars`), `*.local.bicepparam`, `*.tfstate*`, `.env*`, `*.pem`, `*.pfx` and `*.key`. Do not weaken it.
 
-No secrets in code. Credentials come from Azure CLI login, OIDC federation in CI, managed identities, or Key Vault references. A pattern that needs a secret documents the Key Vault secret name it reads, never the value.
+No secrets in code. Credentials come from Azure CLI login, OIDC federation in CI, managed identities, or Key Vault references. A blueprint that needs a secret documents the Key Vault secret name it reads, never the value.
 
 Secure by default. An insecure option requires an explicit parameter and a row in the design decisions table.
 
-Terraform state lives in a storage account created outside this repository. Every `versions.tf` carries a commented `backend "azurerm"` block pointing at the key `groundwork/NN-<pattern>.tfstate`. Local state is acceptable for a sandbox run only.
+Terraform state lives in a storage account created outside this repository. Every `versions.tf` carries a commented `backend "azurerm"` block pointing at the key `groundwork/NN-<blueprint>.tfstate`. Local state is acceptable for a sandbox run only.
 
-Azure provider features are set for safety over convenience: `prevent_deletion_if_contains_resources = true`; for Key Vault, `purge_soft_delete_on_destroy = false` and `recover_soft_deleted_key_vaults = true`. Every pattern sets them explicitly rather than relying on provider defaults.
+Azure provider features are set for safety over convenience: `prevent_deletion_if_contains_resources = true`; for Key Vault, `purge_soft_delete_on_destroy = false` and `recover_soft_deleted_key_vaults = true`. Every blueprint sets them explicitly rather than relying on provider defaults.
 
 A Checkov skip is allowed only with an inline reason that points at the design decisions table:
 
@@ -86,7 +86,7 @@ A skip without a reason fails review.
 
 **Terraform.** Files are split by topic: `versions.tf`, `variables.tf`, `locals.tf`, `main.tf`, `<topic>.tf`, `outputs.tf`. Families of similar resources (alerts, policy assignments) are a `locals` catalog map iterated with `for_each`, so the catalog reads as a table and the resource count in the guide is honest.
 
-**Definitions shared by both languages** (a workbook, a policy JSON) live in a pattern-level folder and are loaded with `loadTextContent()` in Bicep and `file("${path.module}/../<folder>/<file>")` in Terraform.
+**Definitions shared by both languages** (a workbook, a policy JSON) live in a blueprint-level folder and are loaded with `loadTextContent()` in Bicep and `file("${path.module}/../<folder>/<file>")` in Terraform.
 
 **When the `azurerm` provider models something differently from ARM** (for example one `operation_name` per activity log alert where ARM accepts a list), split for Terraform, keep coverage identical, and record the count difference in the design decisions table.
 
@@ -109,10 +109,10 @@ az deployment sub create --location <region> --parameters examples/main.local.bi
 
 Checkov's Bicep parser cannot handle a multi-line function call inside a `var` declaration. Keep `var x = fn(a, b)` on one line.
 
-TFLint runs the `terraform` recommended preset plus a pinned ruleset for each cloud that has a pattern, configured in `.tflint.hcl` at the repository root.
+TFLint runs the `terraform` recommended preset plus a pinned ruleset for each cloud that has a blueprint, configured in `.tflint.hcl` at the repository root.
 
 ## 7. Documentation
 
-Every guide follows [PATTERN_TEMPLATE.md](PATTERN_TEMPLATE.md) section for section. The test is simple: hand the guide to someone who has never seen the repository or the subscription. If they would need to ask a question, the guide is incomplete.
+Every guide follows [BLUEPRINT_TEMPLATE.md](BLUEPRINT_TEMPLATE.md) section for section. The test is simple: hand the guide to someone who has never seen the repository or the subscription. If they would need to ask a question, the guide is incomplete.
 
 The design decisions table (Decision, Chosen, Rejected, Why) is the most-read section by reviewers. Every non-obvious default gets a row. Removed scope gets a row.

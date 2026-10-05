@@ -1,10 +1,10 @@
-# Pattern Guide Template
+# Blueprint Guide Template
 
-Every pattern's `README.md` follows this structure, in this order, with every section present. Copy the block below into a new pattern folder and replace every bracketed placeholder. Pattern 03's guide is a complete worked example.
+Every blueprint's `README.md` follows this structure, in this order, with every section present. Copy the block below into a new blueprint folder and replace every bracketed placeholder. Blueprint 03's guide is a complete worked example.
 
-**The rule:** assume the reader has never deployed anything before. If someone cannot deploy this pattern from zero using only this guide, the guide is incomplete. If it is not written down, it does not exist.
+**The rule:** assume the reader has never deployed anything before. If someone cannot deploy this blueprint from zero using only this guide, the guide is incomplete. If it is not written down, it does not exist.
 
-**The truth rule:** describe what the pattern does and what it has been tested against. Never claim client deployments, uptime figures, or compliance certifications that cannot be proven. The status vocabulary is exactly three words, defined in the root README: Planned, In progress, Ready.
+**The truth rule:** describe what the blueprint does and what it has been tested against. Never claim client deployments, uptime figures, or compliance certifications that cannot be proven. The status vocabulary is exactly three words, defined in the root README: Planned, In progress, Ready.
 
 **Who reads what:** business owners read "In plain terms" and stop. IT leads read everything from Prerequisites to Teardown and follow it step by step. Engineers and reviewers go to Design decisions first. Write each section for its reader.
 
@@ -13,11 +13,11 @@ Every pattern's `README.md` follows this structure, in this order, with every se
 ---
 
 ````markdown
-# [NN] [Pattern Name]
+# [NN] [Blueprint Name]
 
 > Status: Planned | In progress | Ready \
 > Clouds: Azure (Bicep, Terraform) | AWS (Terraform) | Google Cloud (Terraform) \
-> Requires: [Pattern NN (what it provides), or "none"] \
+> Requires: [Blueprint NN (what it provides), or "none"] \
 > Last validated: [YYYY-MM-DD, or "not yet deployed"]
 
 ## In plain terms
@@ -49,7 +49,7 @@ flowchart TB
 
 ### The [policy | alert | backup policy | control] catalog
 
-[Only when the pattern deploys a family of similar things. One row per item: what it is, who or what it applies to, what it does, exclusions, why.]
+[Only when the blueprint deploys a family of similar things. One row per item: what it is, who or what it applies to, what it does, exclusions, why.]
 
 ## 2. Prerequisites
 
@@ -59,13 +59,13 @@ flowchart TB
 | Roles | [Exact role names at the exact scope, for a user and for a service principal] |
 | Resource providers | [Providers to register, or "none beyond the defaults"] |
 | CLI tools and versions | [Azure CLI 2.x, Bicep 0.x, Terraform 1.x, provider versions] |
-| Earlier patterns | [Outputs needed from Pattern NN and the command that prints them] |
+| Earlier blueprints | [Outputs needed from Blueprint NN and the command that prints them] |
 | Information to have ready | [Every value the deployer must know before starting] |
 
 ## 3. Folder structure
 
 ```text
-NN-pattern-name/
+NN-blueprint-name/
 ├── README.md              This guide
 ├── bicep/                 main.bicep (subscription scope) and modules/
 ├── terraform/             versions.tf, variables.tf, locals.tf, main.tf, <topic>.tf, outputs.tf
@@ -79,7 +79,7 @@ NN-pattern-name/
 
 ### Before either path
 
-[Sign in, pick the subscription, register providers, gather the outputs of earlier patterns. Every command. Say "pick one path, do not run both".]
+[Sign in, pick the subscription, register providers, gather the outputs of earlier blueprints. Every command. Say "pick one path, do not run both".]
 
 ### Option A: Bicep
 
@@ -93,7 +93,7 @@ cp examples/main.example.bicepparam examples/main.local.bicepparam
 az deployment sub what-if --name groundwork-[nn] --location <region> --parameters examples/main.local.bicepparam
 az deployment sub create  --name groundwork-[nn] --location <region> --parameters examples/main.local.bicepparam
 
-# Capture the outputs the next pattern needs
+# Capture the outputs the next blueprint needs
 az deployment sub show --name groundwork-[nn] --query properties.outputs -o json
 ```
 
@@ -108,14 +108,14 @@ cd terraform
 terraform init                      # For a kept environment, configure the backend in versions.tf first.
 terraform plan -out=[nn].tfplan     # Expect [N] resources to add, 0 to change, 0 to destroy.
 terraform apply [nn].tfplan
-terraform output -json              # Capture the outputs the next pattern needs
+terraform output -json              # Capture the outputs the next blueprint needs
 ```
 
 ### Outputs
 
 | Output (Bicep / Terraform) | Used by |
 |---|---|
-| [name / snake_name] | [Pattern NN, as input X] |
+| [name / snake_name] | [Blueprint NN, as input X] |
 
 ## 5. Validation checklist
 
@@ -136,11 +136,11 @@ terraform output -json              # Capture the outputs the next pattern needs
 
 ## 8. Security model
 
-- **Identity and access.** [What the deploying identity needs and what the pattern grants.]
-- **Secrets.** [Where secrets come from; usually none in this pattern.]
+- **Identity and access.** [What the deploying identity needs and what the blueprint grants.]
+- **Secrets.** [Where secrets come from; usually none in this blueprint.]
 - **Network.** [Public endpoints, private endpoints, firewall defaults.]
 - **Logging.** [What is logged, where, for how long.]
-- **Known gaps by design.** [What this pattern deliberately does not do, and which pattern or decision covers it.]
+- **Known gaps by design.** [What this blueprint deliberately does not do, and which blueprint or decision covers it.]
 
 ## 9. Cost breakdown
 
@@ -159,7 +159,7 @@ Every figure is labeled Estimate (with its method) or Assumption (with its reaso
 - [ ] Torn down cleanly with no orphaned resources
 - [ ] Cost estimate confirmed against the sandbox bill
 
-The pattern moves to **Ready** when every box is checked.
+The blueprint moves to **Ready** when every box is checked.
 
 ## Changelog
 

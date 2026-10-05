@@ -2,22 +2,22 @@
 
 **The cloud foundation most growing businesses skip, written down as code.**
 
-Groundwork is an open library of infrastructure-as-code patterns for small and mid-sized businesses: security, monitoring, backup, identity and cost guardrails that can be deployed, checked and rebuilt the same way every time. It is built and maintained by [IndigoWave Tech](https://indigowavetech.com), an Atlanta-based managed services provider.
+Groundwork is an open library of infrastructure-as-code blueprints for small and mid-sized businesses: security, monitoring, backup, identity and cost guardrails that can be deployed, checked and rebuilt the same way every time. It is built and maintained by [IndigoWave Tech](https://indigowavetech.com), an Atlanta-based managed services provider.
 
-Azure patterns ship in both **Bicep** and **Terraform**. AWS and Google Cloud patterns ship in **Terraform**.
+Azure blueprints ship in both **Bicep** and **Terraform**. AWS and Google Cloud blueprints ship in **Terraform**.
 
 **Contents**
 
 - [What this repository is](#what-this-repository-is)
 - [Who it is for](#who-it-is-for)
-- [The patterns](#the-patterns)
+- [The blueprints](#the-blueprints)
 - [How to use it](#how-to-use-it)
-- [What is inside every pattern](#what-is-inside-every-pattern)
+- [What is inside every blueprint](#what-is-inside-every-blueprint)
 - [How changes are checked](#how-changes-are-checked)
 - [Design principles](#design-principles)
 - [Repository structure](#repository-structure)
 - [Contributing and feedback](#contributing-and-feedback)
-- [Using these patterns responsibly](#using-these-patterns-responsibly)
+- [Using these blueprints responsibly](#using-these-blueprints-responsibly)
 - [Want this run for you?](#want-this-run-for-you)
 
 ---
@@ -28,7 +28,7 @@ Think of your cloud environment like a building. Nobody admires the foundation, 
 
 Most small businesses build their cloud one urgent request at a time. Someone creates a storage account for a project, someone else opens a firewall port to fix a problem on a Friday, and two years later nobody can say exactly how the environment was put together or whether it is safe. Every setup ends up a little different, and every fix depends on the one person who remembers.
 
-Groundwork takes the opposite approach. Each pattern is a written, repeatable blueprint for one part of the foundation. Because the blueprint is code, it can be:
+Groundwork takes the opposite approach. Each blueprint is a written, repeatable plan for one part of the foundation. Because the blueprint is code, it can be:
 
 - **Deployed the same way every time**, so a new environment matches the last one
 - **Checked automatically** against Microsoft, AWS and Google security guidance before anything is created
@@ -41,39 +41,39 @@ This is not a generic module collection. Microsoft, HashiCorp and others already
 ### What this repository is not
 
 - It is not a managed service. The code does not watch, patch or respond to anything on its own. That is what a provider does with it.
-- It is not a one-click setup for every business. Every pattern needs its parameters reviewed against your organization before it is deployed.
-- It is not a compliance certification. Patterns align with published frameworks and are checked against them, but alignment is not the same as an audit.
+- It is not a one-click setup for every business. Every blueprint needs its parameters reviewed against your organization before it is deployed.
+- It is not a compliance certification. Blueprints align with published frameworks and are checked against them, but alignment is not the same as an audit.
 
 ---
 
 ## Who it is for
 
-**Business owners and executives.** You are not expected to read code. Each pattern's guide opens with a plain-language summary that answers three questions: what does this protect me from, what does it cost to run each month, and why was each decision made. Use it to understand what a well-built foundation includes, to ask your current IT provider pointed questions, or to evaluate what IndigoWave Tech would deploy for you.
+**Business owners and executives.** You are not expected to read code. Each blueprint's guide opens with a plain-language summary that answers three questions: what does this protect me from, what does it cost to run each month, and why was each decision made. Use it to understand what a well-built foundation includes, to ask your current IT provider pointed questions, or to evaluate what IndigoWave Tech would deploy for you.
 
-**Internal IT leads and office managers who own technology.** You are often one person covering everything. These patterns give you a reviewed starting point instead of a blank page, and a documented standard you can hold your environment against. The deploy-from-zero guides assume nothing has been set up before.
+**Internal IT leads and office managers who own technology.** You are often one person covering everything. These blueprints give you a reviewed starting point instead of a blank page, and a documented standard you can hold your environment against. The deploy-from-zero guides assume nothing has been set up before.
 
-**Cloud engineers and consultants.** You will find the full reasoning behind every non-obvious choice in each pattern's design decisions table, with the rejected alternatives and the tradeoff. Disagree with a decision on purpose rather than by accident. Fork, adapt, and raise an issue if you think a default is wrong.
+**Cloud engineers and consultants.** You will find the full reasoning behind every non-obvious choice in each blueprint's design decisions table, with the rejected alternatives and the tradeoff. Disagree with a decision on purpose rather than by accident. Fork, adapt, and raise an issue if you think a default is wrong.
 
-**Other managed service providers.** Use the patterns as a reference for your own baseline, or as a shared vocabulary when a client asks what "secure by default" means in practice.
+**Other managed service providers.** Use the blueprints as a reference for your own baseline, or as a shared vocabulary when a client asks what "secure by default" means in practice.
 
 **Technical evaluators and reviewers.** If you are assessing IndigoWave Tech's approach to cloud architecture, this repository is the working example: the decisions, the documentation standard, the automated checks, and the way environment-specific data is kept out of code.
 
 ---
 
-## The patterns
+## The blueprints
 
-| Pattern | What it protects you from | Clouds | Status |
+| Blueprint | What it protects you from | Clouds | Status |
 |---|---|---|---|
-| [01 Secure Landing Zone](patterns/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | Planned |
-| [02 Overnight Watch](patterns/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Azure | Planned |
-| [03 Identity Baseline](patterns/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | In progress |
-| [04 Backup and Recovery](patterns/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Azure | Planned |
-| [05 Cost Guardrails](patterns/05-cost-guardrails/) | Surprise bills, forgotten resources, and spending nobody can explain | Azure | Planned |
-| [06 Multi-Cloud Guardrails](patterns/06-multicloud-guardrails/) | AWS and Google Cloud accounts running without the same protections as the rest of your business | AWS, Google Cloud | Planned |
+| [01 Secure Landing Zone](blueprints/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | Planned |
+| [02 Overnight Watch](blueprints/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Azure | Planned |
+| [03 Identity Baseline](blueprints/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | In progress |
+| [04 Backup and Recovery](blueprints/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Azure | Planned |
+| [05 Cost Guardrails](blueprints/05-cost-guardrails/) | Surprise bills, forgotten resources, and spending nobody can explain | Azure | Planned |
+| [06 Multi-Cloud Guardrails](blueprints/06-multicloud-guardrails/) | AWS and Google Cloud accounts running without the same protections as the rest of your business | AWS, Google Cloud | Planned |
 
-Patterns are numbered in the order most organizations should adopt them. The landing zone comes first because every other pattern deploys into it.
+Blueprints are numbered in the order most organizations should adopt them. The landing zone comes first because every other blueprint deploys into it.
 
-As of October 2026, Pattern 03 has deployable code on `main`. Patterns 01 and 02 are built and under review on their own branches (`patterns/01-landing-zone` and `patterns/02-monitoring-alerting`); their rows above change when they merge.
+As of October 2026, Blueprint 03 has deployable code on `main`. Blueprints 01 and 02 are built and under review on their own branches (`blueprints/01-landing-zone` and `blueprints/02-monitoring-alerting`); their rows above change when they merge.
 
 **Status definitions**
 
@@ -89,28 +89,28 @@ As of October 2026, Pattern 03 has deployable code on `main`. Patterns 01 and 02
 
 ### If you are a business owner
 
-1. Open the pattern that matches a worry you have (the table above is organized by what each one protects against).
+1. Open the blueprint that matches a worry you have (the table above is organized by what each one protects against).
 2. Read the "In plain terms" section at the top of its guide. It is written for you, not for engineers.
 3. Bring the three questions (what it protects, what it costs, why these decisions) to whoever manages your technology, or [book a consultation](#want-this-run-for-you) and we will walk through it together.
 
-### If you are deploying a pattern yourself
+### If you are deploying a blueprint yourself
 
-Each pattern's guide has the exact steps for that pattern. The general flow is the same for all of them.
+Each blueprint's guide has the exact steps for that blueprint. The general flow is the same for all of them.
 
-**Step 1. Pick a pattern and read the whole guide first.** Especially the prerequisites and design decisions. Do not deploy anything you have not read.
+**Step 1. Pick a blueprint and read the whole guide first.** Especially the prerequisites and design decisions. Do not deploy anything you have not read.
 
 **Step 2. Clone the repository.**
 
 ```bash
 git clone https://github.com/IndigoWave-Tech/groundwork.git
-cd groundwork/patterns/01-landing-zone
+cd groundwork/blueprints/01-landing-zone
 ```
 
-**Step 3. Install the tools listed in the pattern's prerequisites.** Typically one or more of:
+**Step 3. Install the tools listed in the blueprint's prerequisites.** Typically one or more of:
 
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) with Bicep (`az bicep install`)
 - [Terraform](https://developer.hashicorp.com/terraform/install)
-- [AWS CLI](https://aws.amazon.com/cli/) or [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) for pattern 06
+- [AWS CLI](https://aws.amazon.com/cli/) or [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) for blueprint 06
 
 **Step 4. Copy the example parameter file and fill in your values.** Example files are the only parameter files committed to this repository. Your copy should never be committed anywhere public.
 
@@ -146,16 +146,16 @@ terraform apply plan.tfplan
 
 ### If you are reviewing or adapting the code
 
-- Each pattern's design decisions table lists what was chosen, what was rejected, and why. Start there.
-- [docs/CONVENTIONS.md](docs/CONVENTIONS.md) explains the naming, input, security and code rules every pattern follows, so you can tell a deliberate choice from an accident.
+- Each blueprint's design decisions table lists what was chosen, what was rejected, and why. Start there.
+- [docs/CONVENTIONS.md](docs/CONVENTIONS.md) explains the naming, input, security and code rules every blueprint follows, so you can tell a deliberate choice from an accident.
 - Run the same checks CI runs (see [How changes are checked](#how-changes-are-checked)) on your fork before relying on a change.
 - Open an issue if you believe a default is wrong for the stated audience. Disagreement with reasoning attached is the most useful contribution.
 
 ---
 
-## What is inside every pattern
+## What is inside every blueprint
 
-Each pattern folder contains:
+Each blueprint folder contains:
 
 - **Deployable code** in Bicep and/or Terraform, with example parameter files only
 - **An architecture diagram**, as a Mermaid block inside the guide so it renders on GitHub and changes with the text
@@ -165,7 +165,7 @@ Each pattern folder contains:
 - **A monthly cost estimate** with its assumptions and date shown
 - **A design decisions table** explaining what was chosen, what was rejected, and why
 
-The structure is fixed by [docs/PATTERN_TEMPLATE.md](docs/PATTERN_TEMPLATE.md). If someone cannot deploy a pattern using only its guide, the guide is treated as incomplete.
+The structure is fixed by [docs/BLUEPRINT_TEMPLATE.md](docs/BLUEPRINT_TEMPLATE.md). If someone cannot deploy a blueprint using only its guide, the guide is treated as incomplete.
 
 ---
 
@@ -184,24 +184,24 @@ Every pull request and every push to `main` runs the [Validate workflow](.github
 To run the same checks locally before opening a pull request:
 
 ```bash
-# Bicep (replace 01-landing-zone with the pattern you changed)
-az bicep build --file patterns/01-landing-zone/bicep/main.bicep --stdout > /dev/null
-az bicep lint  --file patterns/01-landing-zone/bicep/main.bicep
-az bicep build-params --file patterns/01-landing-zone/examples/main.example.bicepparam --stdout > /dev/null
+# Bicep (replace 01-landing-zone with the blueprint you changed)
+az bicep build --file blueprints/01-landing-zone/bicep/main.bicep --stdout > /dev/null
+az bicep lint  --file blueprints/01-landing-zone/bicep/main.bicep
+az bicep build-params --file blueprints/01-landing-zone/examples/main.example.bicepparam --stdout > /dev/null
 
 # Terraform
-terraform -chdir=patterns/01-landing-zone/terraform fmt -check -recursive
-terraform -chdir=patterns/01-landing-zone/terraform init -backend=false
-terraform -chdir=patterns/01-landing-zone/terraform validate
+terraform -chdir=blueprints/01-landing-zone/terraform fmt -check -recursive
+terraform -chdir=blueprints/01-landing-zone/terraform init -backend=false
+terraform -chdir=blueprints/01-landing-zone/terraform validate
 tflint --init --config "$(pwd)/.tflint.hcl"
 tflint --recursive --config "$(pwd)/.tflint.hcl"
 
 # Security scan
 pip install checkov
-checkov --directory patterns
+checkov --directory blueprints
 ```
 
-Marking a pattern **Ready** additionally requires a real deployment and teardown in a sandbox subscription, with the validation checklist completed against it.
+Marking a blueprint **Ready** additionally requires a real deployment and teardown in a sandbox subscription, with the validation checklist completed against it.
 
 ---
 
@@ -213,7 +213,7 @@ Marking a pattern **Ready** additionally requires a real deployment and teardown
 - **Tagged for accountability.** Every resource carries owner, environment, and cost-center tags so every dollar can be traced.
 - **Right-sized for the audience.** Defaults reflect a 50 to 500 person organization, not an enterprise. Where an enterprise control was deliberately left out, the design decisions table says so.
 - **Built to be handed over.** The documentation standard exists so that a new engineer or a new provider can take over without a meeting.
-- **Honest about status.** A pattern is called Ready only after it has been deployed and torn down. Reference patterns are described as reference patterns, not as production history.
+- **Honest about status.** A blueprint is called Ready only after it has been deployed and torn down. Reference blueprints are described as reference blueprints, not as production history.
 
 ---
 
@@ -221,7 +221,7 @@ Marking a pattern **Ready** additionally requires a real deployment and teardown
 
 ```text
 groundwork/
-├── patterns/
+├── blueprints/
 │   ├── 01-landing-zone/
 │   ├── 02-monitoring-alerting/
 │   ├── 03-identity-baseline/
@@ -229,8 +229,8 @@ groundwork/
 │   ├── 05-cost-guardrails/
 │   └── 06-multicloud-guardrails/
 ├── docs/
-│   ├── PATTERN_TEMPLATE.md    Standard structure every pattern guide follows
-│   └── CONVENTIONS.md         Naming, input, security and code rules every pattern follows
+│   ├── BLUEPRINT_TEMPLATE.md    Standard structure every blueprint guide follows
+│   └── CONVENTIONS.md         Naming, input, security and code rules every blueprint follows
 ├── .github/
 │   ├── workflows/validate.yml Automated checks on every change
 │   ├── pull_request_template.md
@@ -244,17 +244,17 @@ groundwork/
 └── README.md
 ```
 
-Every pattern folder has the same layout:
+Every blueprint folder has the same layout:
 
 ```text
-NN-pattern-name/
+NN-blueprint-name/
 ├── README.md              Owner summary and full technical guide
 ├── bicep/                 Azure deployment (Bicep): main.bicep plus modules/
-│   └── README.md          Only when a pattern has no Bicep, explaining why (Pattern 03)
+│   └── README.md          Only when a blueprint has no Bicep, explaining why (Blueprint 03)
 ├── terraform/             Deployment (Terraform)
 ├── examples/              Example parameter files, no real values
 ├── diagrams/              Exported images, if any; the diagram source is a Mermaid block in README.md
-└── <shared>/              Optional: definitions both languages load (Pattern 02 has workbook/)
+└── <shared>/              Optional: definitions both languages load (Blueprint 02 has workbook/)
 ```
 
 ---
@@ -271,9 +271,9 @@ Every pull request goes through the template checklist: no environment-specific 
 
 ---
 
-## Using these patterns responsibly
+## Using these blueprints responsibly
 
-These are reference patterns built to production standards. They are a strong starting point, not a substitute for understanding your own environment. Review every pattern against your organization's requirements, and test in a non-production subscription or account before deploying anywhere that matters. Cloud charges from deploying these patterns are your responsibility.
+These are reference blueprints built to production standards. They are a strong starting point, not a substitute for understanding your own environment. Review every blueprint against your organization's requirements, and test in a non-production subscription or account before deploying anywhere that matters. Cloud charges from deploying these blueprints are your responsibility.
 
 ---
 
