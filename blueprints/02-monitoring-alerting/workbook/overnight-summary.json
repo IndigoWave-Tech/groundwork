@@ -1,0 +1,261 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Overnight Summary\n\nWhat happened in this subscription while nobody was watching. Default range is the last 24 hours. Start at the top and work down; if the first three sections are empty, the night was quiet."
+      },
+      "name": "text-4875"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "tr",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 86400000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                }
+              ]
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 1. Alerts that fired"
+      },
+      "name": "text-5164"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue == \"Alert\"\n| extend Rule = tostring(parse_json(Properties).eventProperties)\n| summarize Count = count(), Last = max(TimeGenerated) by OperationNameValue, Level\n| order by Last desc",
+        "size": 0,
+        "title": "Alerts fired",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "alerts-fired"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 2. Who changed what"
+      },
+      "name": "text-8525"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue == \"Administrative\" and ActivityStatusValue in (\"Success\", \"Succeeded\")\n| where OperationNameValue !has \"/read\"\n| summarize Changes = count(), FirstChange = min(TimeGenerated), LastChange = max(TimeGenerated) by Caller\n| order by Changes desc",
+        "size": 0,
+        "title": "Changes by caller",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "changes-by-caller"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue == \"Administrative\" and ActivityStatusValue in (\"Success\", \"Succeeded\")\n| where OperationNameValue has_any (\"/write\", \"/delete\")\n| project TimeGenerated, Caller, OperationNameValue, ResourceGroup, Resource = tostring(split(_ResourceId, \"/\")[-1]), CallerIpAddress\n| order by TimeGenerated desc\n| take 100",
+        "size": 0,
+        "title": "Write and delete operations",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "write-and-delete-operations"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue == \"Administrative\" and ActivityStatusValue in (\"Success\", \"Succeeded\")\n| where OperationNameValue has_any (\"/write\", \"/delete\")\n| summarize Changes = count() by bin(TimeGenerated, 1h)",
+        "size": 0,
+        "title": "Changes over time",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "name": "changes-over-time"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 3. Denied by policy\n\nAttempts that the landing zone guardrails blocked. A spike here usually means someone is working against the standard, or the standard is wrong."
+      },
+      "name": "text-6111"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\n| where CategoryValue == \"Policy\" or (CategoryValue == \"Administrative\" and ActivityStatusValue == \"Failed\" and ActivitySubstatusValue == \"RequestDisallowedByPolicy\")\n| summarize Denials = count(), Last = max(TimeGenerated) by Caller, OperationNameValue\n| order by Denials desc",
+        "size": 0,
+        "title": "Policy denials",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "policy-denials"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 4. Machine health\n\nOnly populated once virtual machines are onboarded to the workspace with the Azure Monitor Agent."
+      },
+      "name": "text-8789"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Heartbeat\n| summarize LastHeartbeat = max(TimeGenerated) by Computer, OSType, ResourceGroup\n| extend MinutesSilent = datetime_diff(\"minute\", now(), LastHeartbeat)\n| extend Status = iff(MinutesSilent > __HEARTBEAT_MINUTES__, \"Silent\", \"Reporting\")\n| order by MinutesSilent desc",
+        "size": 0,
+        "title": "Heartbeat status",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "Status",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Silent",
+                    "representation": "failed",
+                    "text": "{0}"
+                  },
+                  {
+                    "operator": "Default",
+                    "representation": "success",
+                    "text": "{0}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "name": "heartbeat-status"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "InsightsMetrics\n| where Namespace == \"LogicalDisk\" and Name == \"FreeSpacePercentage\"\n| extend Disk = tostring(parse_json(Tags)[\"vm.azm.ms/mountId\"])\n| summarize FreePercent = round(min(Val), 1) by Computer, Disk\n| order by FreePercent asc\n| take 20",
+        "size": 0,
+        "title": "Lowest free disk space",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "lowest-free-disk-space"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 5. Log volume\n\nWhat is filling the workspace. Watch for a table that jumps; that is where the bill comes from."
+      },
+      "name": "text-173"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Usage\n| where IsBillable == true\n| summarize GB = round(sum(Quantity) / 1024, 2) by DataType\n| order by GB desc",
+        "size": 0,
+        "title": "Ingestion by table",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "piechart"
+      },
+      "name": "ingestion-by-table"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Usage\n| where IsBillable == true\n| summarize GB = round(sum(Quantity) / 1024, 3) by bin(TimeGenerated, 1h)",
+        "size": 0,
+        "title": "Ingestion over time",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "areachart"
+      },
+      "name": "ingestion-over-time"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## 6. Key Vault access\n\nDenied requests to any Key Vault sending diagnostics to this workspace."
+      },
+      "name": "text-7663"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\n| where ResourceProvider == \"MICROSOFT.KEYVAULT\" and Category == \"AuditEvent\"\n| where ResultSignature in (\"Forbidden\", \"Unauthorized\")\n| summarize Denials = count(), Last = max(TimeGenerated) by Resource, CallerIPAddress, identity_claim_appid_g\n| order by Denials desc",
+        "size": 0,
+        "title": "Key Vault denials by caller IP",
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table"
+      },
+      "name": "key-vault-denials-by-caller-ip"
+    }
+  ],
+  "fallbackResourceIds": [],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
