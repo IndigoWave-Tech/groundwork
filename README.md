@@ -73,8 +73,6 @@ This is not a generic module collection. Microsoft, HashiCorp and others already
 
 Blueprints are numbered in the order most organizations should adopt them. The landing zone comes first because every other blueprint deploys into it.
 
-As of October 2026, Blueprint 03 has deployable code on `main`. Blueprints 01 and 02 are built and under review on their own branches (`blueprints/01-landing-zone` and `blueprints/02-monitoring-alerting`); their rows above change when they merge.
-
 **Status definitions**
 
 | Status | Meaning |
