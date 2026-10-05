@@ -109,7 +109,7 @@ az deployment sub create --location <region> --parameters examples/main.local.bi
 
 Checkov's Bicep parser cannot handle a multi-line function call inside a `var` declaration. Keep `var x = fn(a, b)` on one line.
 
-TFLint runs the `terraform` recommended preset plus a pinned ruleset for each cloud that has a blueprint, configured in `.tflint.hcl` at the repository root.
+TFLint runs the `terraform` recommended preset plus a pinned ruleset for each cloud that has a blueprint, configured in `.tflint.hcl` at the repository root. A rule disabled there carries a comment with the reason, the same standard as a Bicep suppression.
 
 ## 7. Documentation
 
