@@ -24,6 +24,7 @@ output "policy_ids" {
       ca201_mfa_admins                     = azuread_conditional_access_policy.ca201_mfa_admins.id
       ca202_mfa_azure_management           = azuread_conditional_access_policy.ca202_mfa_azure_management.id
       ca203_admin_session                  = azuread_conditional_access_policy.ca203_admin_session.id
+      ca204_admin_browser_persistence      = azuread_conditional_access_policy.ca204_admin_browser_persistence.id
     },
     var.enable_risk_policies ? {
       ca301_sign_in_risk = azuread_conditional_access_policy.ca301_sign_in_risk[0].id

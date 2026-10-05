@@ -24,13 +24,16 @@ locals {
   }
   admin_roles = values(local.admin_role_template_ids)
 
-  # Well-known first-party application IDs.
+  # Well-known first-party application IDs, verified against Microsoft Learn
+  # (Conditional Access: target resources, "Windows Azure Service Management API"
+  # and the "Microsoft Admin Portals" built-in target).
   app_windows_azure_service_management = "797f4846-ba00-4fd7-ba43-dac1f8f63013" # Azure portal, CLI, PowerShell
   app_microsoft_admin_portals          = "MicrosoftAdminPortals"                # Conditional Access built-in target
 
-  # Every policy excludes the break-glass group. MFA policies also exclude
-  # the service-account group. The legacy auth block excludes nothing but
-  # break-glass, on purpose.
+  # Every policy excludes the break-glass group. The MFA policies that target
+  # all users (CA101, CA103, CA202, CA301, CA302) also exclude the service-account
+  # group. CA102 (guests), CA001 (legacy auth), CA401 (countries) and the admin
+  # policies (CA201, CA203, CA204) exclude break-glass only, on purpose.
   exclude_break_glass_only = [azuread_group.break_glass_exclusions.object_id]
   exclude_mfa              = [azuread_group.break_glass_exclusions.object_id, azuread_group.mfa_exclusions.object_id]
 

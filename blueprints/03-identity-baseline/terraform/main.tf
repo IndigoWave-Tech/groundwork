@@ -11,14 +11,21 @@ data "azuread_client_config" "current" {}
 # Policies target groups, not individual users, so membership changes never
 # require a policy change. Both groups are assigned (not dynamic) and have
 # the deploying identity as owner so membership is auditable.
+#
+# Both groups are role-assignable. Membership of a role-assignable group can
+# be changed only by Privileged Role Administrators, Global Administrators and
+# the group's owners (here, the deploying identity), so a Groups Administrator
+# or User Administrator cannot add an account that then bypasses every policy.
+# The flag cannot be changed after creation, and the deploying identity needs
+# Privileged Role Administrator to set it. See the guide's design decisions.
 # ----------------------------------------------------------------------------
 
 resource "azuread_group" "break_glass_exclusions" {
   display_name            = "${local.prefix} CA Exclusion - Break Glass"
-  description             = "Emergency access accounts excluded from ALL Conditional Access policies. Membership must be exactly the break-glass accounts. Reviewed quarterly."
+  description             = "Emergency access accounts excluded from ALL Conditional Access policies. Membership must be exactly the break-glass accounts. Role-assignable: only Global and Privileged Role Administrators can change membership. Reviewed quarterly."
   security_enabled        = true
   mail_enabled            = false
-  assignable_to_role      = false
+  assignable_to_role      = true
   prevent_duplicate_names = true
   owners                  = [data.azuread_client_config.current.object_id]
   members                 = var.break_glass_account_object_ids
@@ -26,10 +33,10 @@ resource "azuread_group" "break_glass_exclusions" {
 
 resource "azuread_group" "mfa_exclusions" {
   display_name            = "${local.prefix} CA Exclusion - MFA Exempt"
-  description             = "Accounts that cannot perform MFA, excluded from MFA requirements only. They remain subject to the legacy authentication block. Every member needs a documented reason. Reviewed quarterly."
+  description             = "Accounts that cannot perform MFA, excluded from MFA requirements only. They remain subject to the legacy authentication block. Every member needs a documented reason. Role-assignable: only Global and Privileged Role Administrators can change membership. Reviewed quarterly."
   security_enabled        = true
   mail_enabled            = false
-  assignable_to_role      = false
+  assignable_to_role      = true
   prevent_duplicate_names = true
   owners                  = [data.azuread_client_config.current.object_id]
   members                 = var.service_account_object_ids
