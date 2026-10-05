@@ -1,5 +1,5 @@
 variable "org_code" {
-  description = "Short, lowercase organization code used in names. Match Blueprint 01."
+  description = "Short organization code used in names. Match Blueprint 01. 2 to 8 lowercase letters or digits."
   type        = string
 
   validation {
@@ -35,13 +35,18 @@ variable "break_glass_account_object_ids" {
 }
 
 variable "service_account_object_ids" {
-  description = "Object IDs of user accounts that cannot perform MFA (legacy service accounts, shared mailboxes with interactive sign-in). Excluded from MFA policies only, never from the legacy authentication block. Keep this list short and reviewed."
+  description = "Object IDs of user accounts that cannot perform MFA (legacy service accounts, shared mailboxes with interactive sign-in, the directory synchronization account on hybrid tenants). Excluded from MFA policies only, never from the legacy authentication block. Keep this list short and reviewed."
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = alltrue([for id in var.service_account_object_ids : can(regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", id))])
+    error_message = "Each service account must be an object ID (GUID), not a UPN."
+  }
 }
 
 variable "trusted_ip_ranges" {
-  description = "Office or VPN egress IP ranges in CIDR form, marked as a trusted location. Used to relax MFA for Azure management from the office. Leave empty if you have no fixed egress IP."
+  description = "Office or VPN egress IP ranges in CIDR form, marked as a trusted location. Used by CA103 so that new hires can register their security information from the office without already having MFA. Leave empty if you have no fixed egress IP."
   type        = list(string)
   default     = []
 
@@ -74,13 +79,18 @@ variable "admin_sign_in_frequency_hours" {
   default     = 4
 
   validation {
-    condition     = var.admin_sign_in_frequency_hours >= 1 && var.admin_sign_in_frequency_hours <= 24
-    error_message = "admin_sign_in_frequency_hours must be between 1 and 24."
+    condition     = var.admin_sign_in_frequency_hours >= 1 && var.admin_sign_in_frequency_hours <= 24 && floor(var.admin_sign_in_frequency_hours) == var.admin_sign_in_frequency_hours
+    error_message = "admin_sign_in_frequency_hours must be a whole number between 1 and 24."
   }
 }
 
 variable "workspace_resource_id" {
-  description = "Resource ID of the Blueprint 01 Log Analytics workspace. Entra sign-in and audit logs are sent there. Set to null to skip."
+  description = "Resource ID of the Blueprint 01 Log Analytics workspace (output log_analytics_workspace_id). Entra sign-in and audit logs are sent there, and the azurerm provider takes its subscription from it. Set to null to skip log export."
   type        = string
   default     = null
+
+  validation {
+    condition     = var.workspace_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.OperationalInsights/workspaces/[^/]+$", var.workspace_resource_id))
+    error_message = "workspace_resource_id must be null or a full Log Analytics workspace resource ID."
+  }
 }

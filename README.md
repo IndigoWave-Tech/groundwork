@@ -64,7 +64,7 @@ This is not a generic module collection. Microsoft, HashiCorp and others already
 
 | Blueprint | What it protects you from | Clouds | Status |
 |---|---|---|---|
-| [01 Secure Landing Zone](blueprints/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | Planned |
+| [01 Secure Landing Zone](blueprints/01-landing-zone/) | A cloud setup with no structure, no guardrails, and nobody sure who changed what | Azure | In progress |
 | [02 Overnight Watch](blueprints/02-monitoring-alerting/) | Problems that start at 2 a.m. and are only discovered when staff arrive | Azure | In progress |
 | [03 Identity Baseline](blueprints/03-identity-baseline/) | Stolen passwords, risky sign-ins, and accounts that outlive the people who used them | Microsoft Entra ID | In progress |
 | [04 Backup and Recovery](blueprints/04-backup-recovery/) | Ransomware, accidental deletion, and backups that fail exactly when you need them | Azure | Planned |
