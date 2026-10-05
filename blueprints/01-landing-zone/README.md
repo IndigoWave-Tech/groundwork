@@ -331,6 +331,7 @@ az group delete --name rg-test-deny --yes --no-wait
 | RBAC assignments for people | None | Assign Reader or Contributor to Entra groups | Identity is Blueprint 03. Hard-coding group object IDs here would make the landing zone environment-specific and couple two blueprints that should ship independently. |
 | Naming | `<type>-<workload>-<org>-<env>-<region>` with a 12-region short-code map | Microsoft CAF abbreviations only | CAF resource type abbreviations are followed; the region map is explicit so names stay readable. Unknown regions fall back to the first four characters. The org code is normalized to lowercase in Bicep and validated in Terraform. |
 | Terraform provider features | `prevent_deletion_if_contains_resources = true`, no Key Vault purge on destroy | Provider defaults | Both defaults favour convenience over safety. A landing zone should fail loudly before deleting something it did not create. |
+| No `prevent_destroy` on the Key Vault | Purge protection, 90-day soft delete and the resource group deletion guard; the TFLint rule that asks for `prevent_destroy` is disabled in `.tflint.hcl` | `lifecycle { prevent_destroy = true }` | The teardown section promises that `terraform destroy` removes the blueprint, and Ready requires a sandbox deploy and teardown. `prevent_destroy` would fail that step until someone edits the code, while the vault's contents are already recoverable for 90 days. |
 
 ## 8. Security model
 
